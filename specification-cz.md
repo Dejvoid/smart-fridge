@@ -36,3 +36,6 @@ Zařízení budou připojena na společnou Wi-Fi síť, kde mezi sebou budou kom
  - Vedení nákupního seznamu
  - Pravidelné upozornění (například prášky, které by měl uživatel brát každý den)
  - Recepty ze surovin v lednici
+
+## Vývojové prostředí
+Visual Studio Code + PlatformIO
