@@ -27,7 +27,7 @@ Zařízení budou připojena na společnou Wi-Fi síť, kde mezi sebou budou kom
 ## Technologie
  - ESP-32 - C++ ESP-IDF framework
  - Raspberry Pi - Linux, C# web server
- - Knihovny: TODO
+ - Knihovny: (pravděpodobně něco na práci s kamerou - OCR)
 
 ## Hlavní Funkce
  - Seznam potravin v lednici
