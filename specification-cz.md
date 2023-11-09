@@ -30,6 +30,7 @@ Zařízení budou připojena na společnou Wi-Fi síť, kde mezi sebou budou kom
  - Knihovny: TODO
 
 ## Hlavní Funkce
+ - Seznam potravin v lednici
  - Hlídání data spotřeby
  - Monitorování teploty
  - Vedení nákupního seznamu
