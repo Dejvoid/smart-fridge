@@ -18,6 +18,12 @@ K zařízení pro sběr dat pak bude připojen menší displej, kde uživatel uv
 ## Komunikace mezi zařízeními
 Zařízení budou připojena na společnou Wi-Fi síť, kde mezi sebou budou komunikovat na základě HTTP protokolu.
 
+## Hardwaree
+ - ESP-32-CAM
+ - Raspberry Pi
+ - Dallas DS18B20 (teploměr)
+ - SPI/I2C displej 128x64
+
 ## Technologie
  - ESP-32 - C++ ESP-IDF framework
  - Raspberry Pi - Linux, C# web server
