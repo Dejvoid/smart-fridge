@@ -1,5 +1,5 @@
 # smart-fridge
-Projekt se zabývá implementací systému "chytré lednice." Jedná se o jednoduché zařízení, které bude mít uživatel u lednice/v lednici. Toto zařízení pak bude uživateli umožňovat skenovat produkty, které bude do lednice vkládat a monitorovat aktuální teplotu v lednici. Informace o produktech pak budou uživateli k dispozici ve webové aplikaci.
+Projekt se zabývá implementací systému "chytré lednice." Jedná se o jednoduché zařízení, které bude mít uživatel u lednice/v kuchyni. Toto zařízení pak bude uživateli umožňovat skenovat produkty, které bude do lednice vkládat a monitorovat aktuální teplotu v lednici. Informace o produktech pak budou uživateli k dispozici ve webové aplikaci.
 Projekt se skládá ze dvou částí: 
 Microcontrolleru, který se stará o sběr dat
 Server, který data zpracovává a poskytuje je uživateli
