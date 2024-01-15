@@ -5,8 +5,8 @@
 #include <freertos/event_groups.h>
 #include <iostream>
 
-#define EXAMPLE_ESP_WIFI_SSID "Scooby-Doo"
-#define EXAMPLE_ESP_WIFI_PASS "NorthernLights2341"
+#define EXAMPLE_ESP_WIFI_SSID ""
+#define EXAMPLE_ESP_WIFI_PASS ""
 
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
