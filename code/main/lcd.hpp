@@ -13,10 +13,11 @@
 namespace LcdDriver {
 
 constexpr gpio_num_t MOSI = GPIO_NUM_13;
-constexpr gpio_num_t MISO = GPIO_NUM_12;
+//constexpr gpio_num_t MISO = GPIO_NUM_12;
 constexpr gpio_num_t SCLK = GPIO_NUM_14;
 constexpr gpio_num_t CS   = GPIO_NUM_15;
 constexpr gpio_num_t DC   = GPIO_NUM_2;
+constexpr gpio_num_t RST  = GPIO_NUM_12;
 
 void lcd_pre_transfer_callback(spi_transaction_t* trans);
 

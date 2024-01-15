@@ -17,11 +17,11 @@ void Lcd::init() {
     spi_cfg.data6_io_num = -1;
     spi_cfg.data7_io_num = -1;
     spi_cfg.mosi_io_num = MOSI;
-    spi_cfg.miso_io_num = MISO;
+    //spi_cfg.miso_io_num = MISO;
     spi_cfg.sclk_io_num = SCLK;
     spi_cfg.quadhd_io_num = -1;
     spi_cfg.quadwp_io_num = -1;
-    spi_cfg.flags = SPICOMMON_BUSFLAG_MASTER | SPICOMMON_BUSFLAG_IOMUX_PINS | SPICOMMON_BUSFLAG_MISO | SPICOMMON_BUSFLAG_MOSI | SPICOMMON_BUSFLAG_SCLK;
+    spi_cfg.flags = SPICOMMON_BUSFLAG_MASTER /*| SPICOMMON_BUSFLAG_IOMUX_PINS | SPICOMMON_BUSFLAG_MISO*/ | SPICOMMON_BUSFLAG_MOSI | SPICOMMON_BUSFLAG_SCLK;
     spi_cfg.isr_cpu_id = intr_cpu_id_t::INTR_CPU_ID_AUTO;
     spi_cfg.intr_flags = 0;
     spi_cfg.max_transfer_sz = 4092;
@@ -46,7 +46,7 @@ void Lcd::init() {
     ESP_ERROR_CHECK(spi_bus_add_device(spi_dev, &spi_if_cfg, &spi_handle));
 
     gpio_config_t io_conf; //   DC/RS       RST        backlight
-    io_conf.pin_bit_mask = (1 << DC) ;//| (1 << RST) ;//| (1 << )
+    io_conf.pin_bit_mask = (1 << DC) | (1 << RST) ;//| (1 << )
     io_conf.mode = GPIO_MODE_OUTPUT;
     io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
@@ -55,10 +55,10 @@ void Lcd::init() {
     ESP_ERROR_CHECK(gpio_config(&io_conf));
 
 
-    //gpio_set_level(RST, 0);
-    //vTaskDelay(100 / portTICK_PERIOD_MS);
-    //gpio_set_level(RST, 1);
-    //vTaskDelay(100 / portTICK_PERIOD_MS);
+    gpio_set_level(RST, 0);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+    gpio_set_level(RST, 1);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
 
     ESP_ERROR_CHECK(spi_device_acquire_bus(spi_handle, portMAX_DELAY));
 }
