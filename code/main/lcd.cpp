@@ -17,7 +17,7 @@ void Lcd::init() {
     spi_cfg.data6_io_num = -1;
     spi_cfg.data7_io_num = -1;
     spi_cfg.mosi_io_num = MOSI;
-    //spi_cfg.miso_io_num = MISO;
+    spi_cfg.miso_io_num = -1;
     spi_cfg.sclk_io_num = SCLK;
     spi_cfg.quadhd_io_num = -1;
     spi_cfg.quadwp_io_num = -1;
@@ -61,14 +61,37 @@ void Lcd::init() {
     vTaskDelay(100 / portTICK_PERIOD_MS);
 
     ESP_ERROR_CHECK(spi_device_acquire_bus(spi_handle, portMAX_DELAY));
+
+    send_command(Command::SW_RST); // software reset
+    vTaskDelay(150 / portTICK_PERIOD_MS);
+
+    send_command(Command::SLP_OUT);  // Sleep Out
+
+    send_command(Command::DISP_ON); // display on
+
+// Color Mode
+    send_command(Command::PIX_COL); // interface pixel format
+    send_data((uint8_t)ColorMode::RGB_111); // 3 bit per pixel
+
+    send_command(Command::CA_SET);
+    send_data(0);
+    send_data(0);
+    send_data(WIDTH >> 8);
+    send_data(WIDTH & 0xFF);
+
+	send_command(Command::PA_SET);
+    send_data(0);
+    send_data(0);
+    send_data(HEIGHT >> 8);
+    send_data(HEIGHT & 0xFF);
 }
 
-void Lcd::send_command(uint8_t cmd) {
+void Lcd::send_command(Command cmd) {
     
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));       //Zero out the transaction
     t.length = 8;                   //Command is 8 bits
-    t.tx_data[0] = cmd;             //The data is the cmd itself
+    t.tx_data[0] = (uint8_t)cmd;             //The data is the cmd itself
     t.user = (void*)0;              //D/C needs to be set to 0
     t.flags = SPI_TRANS_USE_TXDATA;
     ESP_ERROR_CHECK(spi_device_polling_transmit(spi_handle, &t));
@@ -89,4 +112,56 @@ void Lcd::send_data(const uint8_t* data, int len) {
 
 void Lcd::send_data(const uint8_t data) {
     send_data(&data, 1);
+}
+
+void Lcd::draw_rect(const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const uint8_t r, const uint8_t g, const uint8_t b) {
+    send_command(Command::CA_SET);
+    send_data(x >> 8);
+    send_data(x & 0xFF);
+    send_data((x + w) >> 8);
+    send_data((x + w) & 0xFF);
+
+	send_command(Command::PA_SET);
+    send_data(y >> 8);
+    send_data(y & 0xFF);
+    send_data((y + h) >> 8);
+    send_data((y + h) & 0xFF);
+
+    
+    send_command(Command::MEM_WR);
+
+    //for (int i = 0; i < w*h ; ++i) {
+    //    send_data(0b11111111);
+    //    
+    //}
+    //if (w*h*3 < BUFF_SIZE) {
+    //    for (int i = 0; i < w*h*3; i+=3) {
+    //        lcd_buff[i] = b;
+    //        lcd_buff[i + 1] = g;
+    //        lcd_buff[i + 2] = r;
+    //    }
+    //    send_data(lcd_buff, w*h*3);
+    //}
+    //else 
+        for (int i = 0; i < w*h / 6; i++) {
+            //send_data(b & 0xfc);
+                send_data(0b00100100);//g); // Blue
+                //send_data(0b00010010);      // Green
+                //send_data(0b00001001);      // Red
+            //send_data(0);//r);
+        }
+        for (int i = 0; i < w*h / 6; i++) {
+            //send_data(b & 0xfc);
+                //send_data(0b00100100);//g); // Blue
+                send_data(0b00010010);      // Green
+                //send_data(0b00001001);      // Red
+            //send_data(0);//r);
+        }
+        for (int i = 0; i < w*h / 6; i++) {
+            //send_data(b & 0xfc);
+                //send_data(0b00100100);//g); // Blue
+                //send_data(0b00010010);      // Green
+                send_data(0b00001001);      // Red
+            //send_data(0);//r);
+        }
 }
