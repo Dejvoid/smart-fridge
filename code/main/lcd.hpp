@@ -36,7 +36,7 @@ enum class ColorMode {
     RGB_111 = 0b00000001,
     // Color mode 6-6-6
     RGB_666 = 0b00000110,
-    // [Not supported on ILI9488] Color mode 5-6-5
+    // [Not supported on ILI9488 over SPI] Color mode 5-6-5
     //RGB_565 = 0b00000101 
 };
 
@@ -55,6 +55,8 @@ enum class Command {
     PA_SET    = 0x2B,
     // Memory write command
     MEM_WR    = 0x2C,
+    // Memory Access Control
+    MADCTL    = 0x36,
 };
 
 void lcd_pre_transfer_callback(spi_transaction_t* trans);
@@ -64,13 +66,15 @@ class Lcd {
     constexpr static spi_host_device_t spi_dev = HSPI_HOST;
     spi_bus_config_t spi_cfg;
     spi_device_interface_config_t spi_if_cfg;
-    uint8_t* buff;
 public:
     void init();
     void send_command(Command cmd);
     void send_data(const uint8_t* data, int len);
     void send_data(const uint8_t);
+    void send_addr_pair(const uint16_t a1, const uint16_t a2);
+    void set_area(const uint16_t from_x, const uint16_t from_y, const uint16_t to_x, const uint16_t to_y);
     void draw_rect(const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const uint8_t r, const uint8_t g, const uint8_t b);
+    void draw_buff(const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const uint8_t buff);
     ~Lcd() {spi_device_release_bus(spi_handle);}
 };
 }
