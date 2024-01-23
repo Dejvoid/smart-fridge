@@ -20,6 +20,8 @@
 
 #include <esp_rom_sys.h>
 
+uint8_t buffer[240*240*3 / 2];
+
 extern "C" void app_main(void)
 {
     esp_err_t ret = nvs_flash_init();
@@ -29,91 +31,43 @@ extern "C" void app_main(void)
     }
     ESP_ERROR_CHECK(ret);
 
-    //WifiDriver::Wifi wifi;
-    //wifi.init();
-//
-    //CameraDriver::Camera cam;
-    //cam.init();
-
-    
+    WifiDriver::Wifi wifi;
+    wifi.init();
     LcdDriver::Lcd lcd;
     lcd.init();
+    CameraDriver::Camera cam;
+    cam.init();
 
+    lcd.draw_rect(0,0,320,480,0x00,0b00,0x03);
 
-    lcd.send_command(0x01); // software reset
-    vTaskDelay(150 / portTICK_PERIOD_MS);
-
-    lcd.send_command(0x11);  // Sleep Out
-    //vTaskDelay(100 / portTICK_PERIOD_MS);
-
-    //lcd.send_command(0x13);  // normal display mode
-    ////vTaskDelay(100 / portTICK_PERIOD_MS);
-//
-    lcd.send_command(0x29); // display on
-
-//// Gamma settings
-//    // Positive
-//    constexpr uint8_t data[15] = { 0x00, 0x03, 0x09, 0x08, 0x16,
-//                         0x0A, 0x3F, 0x78, 0x4C, 0x09,
-//                         0x0A, 0x08, 0x16, 0x1A, 0x0F };
-//    lcd.send_command(0xE0);
-//    lcd.send_data(data, 15);
-//
-//    // Negative
-//    constexpr uint8_t data2[15] = { 0x00, 0x16, 0x19, 0x03, 0x0F,
-//                         0x05, 0x32, 0x45, 0x46, 0x04,
-//                         0x0E, 0x0D, 0x35, 0x37, 0x0F};
-//    lcd.send_command(0xE1);
-//    lcd.send_data(data2, 15);
-//// Power settings
-//    constexpr uint8_t data3[2] = { 0x17, 0x15 };
-//    lcd.send_command(0xC0);
-//    lcd.send_data(data3, 2);
-//
-//    lcd.send_command(0xC1);
-//    lcd.send_data(0x41);
-//
-//    constexpr uint8_t data4[3] = { 0x00, 0x12, 0x80 };
-//    lcd.send_command(0xC5);
-//    lcd.send_data(data4, 3);
-//
-//// Memory access control
-//
-//// Color Mode
-    //lcd.send_command(0x3A); // interface pixel format
-    //lcd.send_data(0x55); // 16 bit per pixel
-//    
-    
-
-    constexpr uint16_t _x1 = 0;
-	constexpr uint16_t _x2 = 100;
-	constexpr uint16_t _y1 = 0;
-	constexpr uint16_t _y2 = 100;
-
-	lcd.send_command(0x2A);	// set column(x) address
-    lcd.send_data(0);
-    lcd.send_data((uint8_t)_x1);
-    lcd.send_data(0);
-    lcd.send_data((uint8_t)_x2);
-////
-	lcd.send_command(0x2B);	// set Page(y) address
-    lcd.send_data(0);
-    lcd.send_data((uint8_t)_y1);
-    lcd.send_data(0);
-    lcd.send_data((uint8_t)_y2);
-
-
-	lcd.send_command(0x2C);	//	Memory Write
-    for (int i = 0; i < 480*200; ++i) {
-        lcd.send_data(0xff); // B
-        lcd.send_data(0x00); // G
-        lcd.send_data(0xff); // R
-    }
-
-    std::cout << "END" << std::endl;
-    while (true)
-    {
-        vTaskDelay(1);
+    lcd.draw_rect(50, 50, 240, 240, 0xf0, 0x00, 0x00);
+    while (true) {
+        auto fb = esp_camera_fb_get();
+        if (fb == NULL) {
+            std::cout << "Error getting framebuffer" << std::endl;
+        }
+        else {
+            int j = 0;
+            for (int i = 0; i < 240 * 240 * 2; i+=2) {
+                auto r = (fb->buf[i] & 0xf8);
+                auto g = ((fb->buf[i] & 0x07) << (3+2)) | ((fb->buf[i+1] & 0xe0) >> 3);
+                auto b = (fb->buf[i+1] & 0x1f) << 3;
+                //lcd.send_data(b);
+                //lcd.send_data(g);
+                //lcd.send_data(r);
+                
+                buffer[j++] = b; 
+                buffer[j++] = g;
+                buffer[j++] = r;
+                if (j >= 240*240*3 / 2) {
+                    j = 0;
+                    lcd.send_data(buffer, 240*240*3 / 2);
+                }
+            }
+        }
+        esp_camera_fb_return(fb);
+        cam.loop();
+        vTaskDelay(1 / portTICK_PERIOD_MS);
     }
    
 }

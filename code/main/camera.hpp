@@ -26,7 +26,7 @@ namespace CameraDriver {
 
 #define XCLK_FREQ_HZ 15000000
 #define CAMERA_PIXFORMAT PIXFORMAT_RGB565
-#define CAMERA_FRAME_SIZE FRAMESIZE_240X240
+#define CAMERA_FRAME_SIZE FRAMESIZE_240X240//FRAMESIZE_HVGA//
 #define CAMERA_FB_COUNT 2
 
 class Camera {
@@ -35,6 +35,7 @@ class Camera {
 public:
     void init();
     void loop();
+    const camera_fb_t* get_frame();
 };
 
 };

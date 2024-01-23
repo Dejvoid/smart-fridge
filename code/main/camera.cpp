@@ -44,8 +44,9 @@ void Camera::init() {
     }
 
     sensor_t *s = esp_camera_sensor_get();
-    if (s->id.PID == OV3660_PID || s->id.PID == OV2640_PID)
+    if (s->id.PID == OV3660_PID || s->id.PID == OV2640_PID) {
         s->set_vflip(s, 1); //flip it back
+    }
     else if (s->id.PID == GC0308_PID){
         s->set_hmirror(s, 0);
     }
@@ -60,6 +61,11 @@ void Camera::init() {
         s->set_contrast(s, 3);
     }
     //return ESP_OK;
+}
+
+const camera_fb_t* Camera::get_frame() {
+    fb = esp_camera_fb_get();
+    return fb;
 }
 
 void Camera::loop() {
@@ -78,8 +84,8 @@ void Camera::loop() {
 
     if(decoded_num) {
         esp_code_scanner_symbol_t result = esp_code_scanner_result(esp_scn);
-        time2 = esp_timer_get_time();
-        ESP_LOGI("Camera.loop", "Decode time in %lld ms.", (time2 - time1) / 1000);
+        //time2 = esp_timer_get_time();
+        //ESP_LOGI("Camera.loop", "Decode time in %lld ms.", (time2 - time1) / 1000);
         ESP_LOGI("Camera.loop", "Decoded %s symbol \"%s\"\n", result.type_name, result.data);
     }
     

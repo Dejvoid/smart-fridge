@@ -19,6 +19,10 @@
 
 ## Camera
 
+- Buffer orientation -> printing on display into square ends up being 2 triangles -> was caused by error in setting width of drawable area (+-1 error)
+
+- Choose the right resolution to fit in memory yet have good quality
+
 ## Thermometer
 
 - Decision between communicating one-wire over U(S)ART or bare timer
