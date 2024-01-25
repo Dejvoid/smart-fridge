@@ -74,17 +74,7 @@ void Lcd::init() {
     send_command(Command::PIX_COL); // interface pixel format
     send_data((uint8_t)ColorMode::RGB_666); // 3 bit per pixel
 
-    send_command(Command::CA_SET);
-    send_data(0);
-    send_data(0);
-    send_data(WIDTH >> 8);
-    send_data(WIDTH & 0xFF);
-
-	send_command(Command::PA_SET);
-    send_data(0);
-    send_data(0);
-    send_data(HEIGHT >> 8);
-    send_data(HEIGHT & 0xFF);
+    set_area(0,0, WIDTH, HEIGHT);
 }
 
 void Lcd::send_command(Command cmd) {
@@ -147,17 +137,20 @@ void Lcd::draw_rect(const uint16_t x, const uint16_t y, const uint16_t w, const 
 
     send_command(Command::MEM_WR);
     auto len = w*h*3;
-    //uint8_t* buff = (uint8_t*)heap_caps_malloc(len, MALLOC_CAP_SPIRAM);
-    //for (int i = 0; i < len; i+=3) {
-    //    buff[i]   = b;
-    //    buff[i+1] = g;
-    //    buff[i+2] = r;
-    //}
-    for (int i = 0; i < w*h; ++i) {
-        send_data(b);
-        send_data(g);
-        send_data(r);
+    int j = 0;
+    int ctr = 0;
+    while (j < len) {
+        for (int i = 0; i < buff_len && j < len; i+=3, j+=3) {
+            buff[i]   = b;
+            buff[i+1] = g;
+            buff[i+2] = r;
+            ctr+=3;
+        }
+        if (j < len || j % buff_len == 0) {
+            send_data(buff, buff_len);
+        }
+        else {
+            send_data(buff, (len % buff_len));
+        }
     }
-    //send_data(buff, len);
-    //free(buff);
 }

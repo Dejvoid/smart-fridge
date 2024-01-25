@@ -17,6 +17,8 @@
 
 - Minimizing pins used by the display
 
+- Compromise on SPI "ballance" buffer size
+
 ## Camera
 
 - Buffer orientation -> printing on display into square ends up being 2 triangles -> was caused by error in setting width of drawable area (+-1 error)

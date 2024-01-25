@@ -61,6 +61,9 @@ enum class Command {
 
 void lcd_pre_transfer_callback(spi_transaction_t* trans);
 
+constexpr int buff_len = 50*50*3; // We want to be able to draw 50x50 of display at once
+static uint8_t buff[buff_len];
+
 class Lcd {
     spi_device_handle_t spi_handle;
     constexpr static spi_host_device_t spi_dev = HSPI_HOST;
@@ -74,7 +77,6 @@ public:
     void send_addr_pair(const uint16_t a1, const uint16_t a2);
     void set_area(const uint16_t from_x, const uint16_t from_y, const uint16_t to_x, const uint16_t to_y);
     void draw_rect(const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const uint8_t r, const uint8_t g, const uint8_t b);
-    void draw_buff(const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const uint8_t buff);
     ~Lcd() {spi_device_release_bus(spi_handle);}
 };
 }
