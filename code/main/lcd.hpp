@@ -14,6 +14,13 @@
 
 namespace LcdDriver {
 
+//struct LcdPins {
+//    gpio_num_t mosi_;
+//    constexpr LcdPins(gpio_num_t mosi, gpio_num_t sclk, gpio_num_t cs, gpio_num_t dc, gpio_num_t rst) : mosi_(mosi), {
+//
+//    };
+//};
+
 // MOSI pin number
 constexpr gpio_num_t MOSI = GPIO_NUM_13;
 //constexpr gpio_num_t MISO = GPIO_NUM_12;
@@ -64,6 +71,7 @@ void lcd_pre_transfer_callback(spi_transaction_t* trans);
 constexpr int buff_len = 50*50*3; // We want to be able to draw 50x50 of display at once
 static uint8_t buff[buff_len];
 
+//template <LcdPins pins>
 class Lcd {
     spi_device_handle_t spi_handle;
     constexpr static spi_host_device_t spi_dev = HSPI_HOST;
@@ -77,6 +85,7 @@ public:
     void send_addr_pair(const uint16_t a1, const uint16_t a2);
     void set_area(const uint16_t from_x, const uint16_t from_y, const uint16_t to_x, const uint16_t to_y);
     void draw_rect(const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const uint8_t r, const uint8_t g, const uint8_t b);
+    void draw_line(const uint16_t from_x, const uint16_t from_y, const uint16_t to_x, const uint16_t to_y, const uint8_t r, const uint8_t g, const uint8_t b);
     ~Lcd() {spi_device_release_bus(spi_handle);}
 };
 }

@@ -154,3 +154,12 @@ void Lcd::draw_rect(const uint16_t x, const uint16_t y, const uint16_t w, const 
         }
     }
 }
+
+void Lcd::draw_line(const uint16_t from_x, const uint16_t from_y, const uint16_t to_x, const uint16_t to_y, const uint8_t r, const uint8_t g, const uint8_t b) {
+    uint16_t dx = to_x - from_x;
+    uint16_t dy = to_y - from_y;
+    for (auto x = from_x; x < to_x; ++x) {
+        auto y = from_y + dy * (x - from_x) / dx;
+        draw_rect(x,y,1,1,r,g,b);
+    }
+}
