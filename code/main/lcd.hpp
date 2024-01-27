@@ -1,5 +1,5 @@
 /**
- * Datasheet: https://www.hpinfotech.ro/ILI9488.pdf
+ * Datasheet: 
  * https://www.displayfuture.com/Display/datasheet/controller/ST7735.pdf
  * https://www.displayfuture.com/Display/datasheet/controller/ILI9488.pdf
  * Resolution: 320x480
@@ -11,6 +11,8 @@
 
 #include <driver/spi_master.h>
 #include <driver/gpio.h>
+
+#include "font.hpp"
 
 namespace LcdDriver {
 
@@ -86,6 +88,8 @@ public:
     void set_area(const uint16_t from_x, const uint16_t from_y, const uint16_t to_x, const uint16_t to_y);
     void draw_rect(const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const uint8_t r, const uint8_t g, const uint8_t b);
     void draw_line(const uint16_t from_x, const uint16_t from_y, const uint16_t to_x, const uint16_t to_y, const uint8_t r, const uint8_t g, const uint8_t b);
+    void draw_char(char c, uint16_t x, uint16_t y,  uint8_t r, uint8_t g, uint8_t b);
+    void draw_text(char* str, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b);
     ~Lcd() {spi_device_release_bus(spi_handle);}
 };
 }

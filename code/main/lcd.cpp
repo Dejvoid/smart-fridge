@@ -163,3 +163,22 @@ void Lcd::draw_line(const uint16_t from_x, const uint16_t from_y, const uint16_t
         draw_rect(x,y,1,1,r,g,b);
     }
 }
+
+void Lcd::draw_char(char c, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b) {
+    auto bmap = font8x8_basic[(int)c];
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            if (bmap[i] & (1 << j)) {
+                draw_rect(x + (7-j),y + i,1,1,r,g,b);
+            }
+        }
+    }
+}
+    
+void Lcd::draw_text(char* str, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b) {
+    int i = 0;
+    while (str[i] != '\0') {
+        draw_char(str[i], x - 8*i, y, r, g, b);
+        ++i;
+    }
+}
