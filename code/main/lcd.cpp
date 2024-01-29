@@ -42,7 +42,7 @@ void Lcd::init() {
     spi_if_cfg.post_cb = NULL;
     spi_if_cfg.pre_cb = lcd_pre_transfer_callback;
     spi_if_cfg.queue_size = 1;
-    spi_if_cfg.spics_io_num = CS;
+    spi_if_cfg.spics_io_num = -1; //CS;
 
     ESP_ERROR_CHECK(spi_bus_add_device(spi_dev, &spi_if_cfg, &spi_handle));
 

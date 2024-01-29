@@ -30,7 +30,15 @@
 - Decision between communicating one-wire over U(S)ART or bare timer
 
     - difficulty of implementation
-    - 1 vs 2 pins needed
-    
 
-    
+    - 1 vs 2 pins needed
+
+## Debugging
+
+- Can't connect J-Tag because pins are used for display (if I want display I can't use J-Tag and vice versa)
+
+- Using Logic Analyzer
+
+    - Turned out to work quite well for debugging of SPI, One-Wire
+
+- https://esp32.com/viewtopic.php?t=28028
