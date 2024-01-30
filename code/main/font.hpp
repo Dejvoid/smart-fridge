@@ -4,6 +4,8 @@
 #ifndef FONT_HPP_
 #define FONT_HPP_
 
+#include <inttypes.h>
+
 namespace LcdDriver {
     constexpr uint8_t font8x8_basic[128][8] = {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   // U+0000 (nul)
