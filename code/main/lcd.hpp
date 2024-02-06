@@ -2,7 +2,7 @@
  * Datasheet: 
  * https://www.displayfuture.com/Display/datasheet/controller/ST7735.pdf
  * https://www.displayfuture.com/Display/datasheet/controller/ILI9488.pdf
- * Resolution: 320x480
+ * Resolution: 480x320
  * SPI Mode: 4-wire
 */
 
@@ -48,6 +48,8 @@ enum class Command {
     MEM_WR    = 0x2C,
     // Memory Access Control
     MADCTL    = 0x36,
+    // Frame rate control
+    FRMCTR    = 0xB1,
 };
 
 constexpr int buff_len = 50*50*3; // We want to be able to draw 50x50 of display at once
@@ -63,25 +65,33 @@ struct LcdPins {
     constexpr LcdPins(int mosi, int miso, int sck, int cs, gpio_num_t rst, gpio_num_t dc) : mosi(mosi), miso(miso), sck(sck), cs(cs), rst(rst), dc(dc) {};
 };
 
-template <LcdPins PINS>
-void lcd_pre_transfer_callback(spi_transaction_t* trans);
+class LcdBase {
+public:
+    virtual void set_area(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y) = 0;
+    virtual void draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t r, uint8_t g, uint8_t b) = 0;
+    virtual void draw_line(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y, uint8_t r, uint8_t g, uint8_t b) = 0;
+    virtual void draw_char(char c, uint16_t x, uint16_t y,  uint8_t r, uint8_t g, uint8_t b) = 0;
+    virtual void draw_text(const std::string& str, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b) = 0;
+    virtual void draw_buff(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) = 0;
+};
+
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
-class Lcd {
+class Lcd : public LcdBase {
     spi_device_handle_t spi_handle;
 public:
     Lcd();
     void init();
     void send_command(Command cmd);
     void send_data(const uint8_t* data, int len);
-    void send_data(const uint8_t);
-    void send_addr_pair(const uint16_t a1, const uint16_t a2);
-    void set_area(const uint16_t from_x, const uint16_t from_y, const uint16_t to_x, const uint16_t to_y);
-    void draw_rect(const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const uint8_t r, const uint8_t g, const uint8_t b);
-    void draw_line(const uint16_t from_x, const uint16_t from_y, const uint16_t to_x, const uint16_t to_y, const uint8_t r, const uint8_t g, const uint8_t b);
+    void send_data(uint8_t);
+    void send_addr_pair(uint16_t a1, uint16_t a2);
+    void set_area(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y);
+    void draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t r, uint8_t g, uint8_t b);
+    void draw_line(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y, uint8_t r, uint8_t g, uint8_t b);
     void draw_char(char c, uint16_t x, uint16_t y,  uint8_t r, uint8_t g, uint8_t b);
-    void draw_text(char* str, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b);
-
+    void draw_text(const std::string& str, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b);
+    void draw_buff(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h);
     ~Lcd() {spi_device_release_bus(spi_handle);}
 };
 
@@ -158,7 +168,15 @@ void Lcd<SPI, PINS, W, H>::init() {
     send_command(Command::PIX_COL); // interface pixel format
     send_data((uint8_t)ColorMode::RGB_666); // 3 bit per pixel
 
-    set_area(0,0, W, H);
+    // set framerate to 60 Hz
+    /*send_command(Command::FRMCTR);
+    constexpr uint8_t frs = 0b1111;
+    constexpr uint8_t diva = 0b00;
+    constexpr uint8_t rtna = 0b10001;
+    send_data((frs << 4) | diva);
+    send_data(rtna);*/
+
+    draw_rect(0,0, W, H, 0x00, 0x00, 0x00); // Fill display with black
 }
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
@@ -188,7 +206,7 @@ void Lcd<SPI, PINS, W, H>::send_data(const uint8_t* data, int len) {
 }
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
-void Lcd<SPI, PINS, W, H>::send_data(const uint8_t data) {
+void Lcd<SPI, PINS, W, H>::send_data(uint8_t data) {
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));       //Zero out the transaction
     t.user = (void*)1;              //D/C needs to be set to 1
@@ -199,7 +217,7 @@ void Lcd<SPI, PINS, W, H>::send_data(const uint8_t data) {
 }
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
-void Lcd<SPI, PINS, W, H>::send_addr_pair(const uint16_t a1, const uint16_t a2) {
+void Lcd<SPI, PINS, W, H>::send_addr_pair(uint16_t a1, uint16_t a2) {
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));       //Zero out the transaction
     t.user = (void*)1;              //D/C needs to be set to 1
@@ -213,20 +231,21 @@ void Lcd<SPI, PINS, W, H>::send_addr_pair(const uint16_t a1, const uint16_t a2) 
 }
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
-void Lcd<SPI, PINS, W, H>::set_area(const uint16_t from_x, const uint16_t from_y, const uint16_t to_x, const uint16_t to_y) {
-    send_command(Command::CA_SET);
-    send_addr_pair(from_x, to_x);
+void Lcd<SPI, PINS, W, H>::set_area(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y) {
+    send_command(Command::PA_SET);
+    send_addr_pair(from_x, to_x-1);
 
-	send_command(Command::PA_SET);
-    send_addr_pair(from_y, to_y);
+	send_command(Command::CA_SET);
+    send_addr_pair(from_y, to_y-1);
 }
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
-void Lcd<SPI, PINS, W, H>::draw_rect(const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const uint8_t r, const uint8_t g, const uint8_t b) {
-    set_area(x,y,(x + w - 1), (y + h - 1));
-
+void Lcd<SPI, PINS, W, H>::draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t r, uint8_t g, uint8_t b) {
+    uint16_t max_x = (x + w <= W) ? x + w : W;
+    uint16_t max_y = (y + h <= H) ? y + h : H;
+    set_area(x,y,(max_x), (max_y));
     send_command(Command::MEM_WR);
-    auto len = w*h*3;
+    auto len = (max_x - x)*(max_y - y)*3;
     int j = 0;
     int ctr = 0;
     while (j < len) {
@@ -246,7 +265,7 @@ void Lcd<SPI, PINS, W, H>::draw_rect(const uint16_t x, const uint16_t y, const u
 }
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
-void Lcd<SPI, PINS, W, H>::draw_line(const uint16_t from_x, const uint16_t from_y, const uint16_t to_x, const uint16_t to_y, const uint8_t r, const uint8_t g, const uint8_t b) {
+void Lcd<SPI, PINS, W, H>::draw_line(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y, uint8_t r, uint8_t g, uint8_t b) {
     uint16_t dx = to_x - from_x;
     uint16_t dy = to_y - from_y;
     for (auto x = from_x; x < to_x; ++x) {
@@ -260,19 +279,32 @@ void Lcd<SPI, PINS, W, H>::draw_char(char c, uint16_t x, uint16_t y, uint8_t r, 
     auto bmap = font8x8_basic[(int)c];
     for (int i = 0; i < 8; ++i) {
         for (int j = 0; j < 8; ++j) {
-            if (bmap[i] & (1 << j)) {
-                draw_rect(x + (7-j),y + i,1,1,r,g,b);
+            if ((bmap[i] >> j) & 1) {
+                draw_rect(x + j, y + i,1,1,r,g,b);
             }
         }
     }
 }
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
-void Lcd<SPI, PINS, W, H>::draw_text(char* str, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b) {
+void Lcd<SPI, PINS, W, H>::draw_text(const std::string& str, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b) {
     int i = 0;
     while (str[i] != '\0') {
-        draw_char(str[i], x - 8*i, y, r, g, b);
+        draw_char(str[i], x + 8*i, y, r, g, b);
         ++i;
+    }
+}
+
+template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
+void Lcd<SPI, PINS, W, H>::draw_buff(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
+    int max_x = (x + w <= W) ? x + w : W;
+    int max_y = (y + h <= H) ? y + h : H;
+    set_area(x, y, max_x, max_y);
+    send_command(Command::MEM_WR);
+    int byte_ctr = 0;
+    for (int i = x; i < max_x; ++i) {
+        send_data(buff + byte_ctr, (max_y - y)*3);
+        byte_ctr += (max_y - y)*3;
     }
 }
 

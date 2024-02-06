@@ -1,3 +1,6 @@
+/**
+ * https://github.com/espressif/esp-who/blob/master/examples/code_recognition/main/app_peripherals.c
+*/
 #ifndef CAMERA_HPP_
 #define CAMERA_HPP_
 
@@ -5,7 +8,6 @@
 
 namespace CameraDriver {
 
-#define CAMERA_MODULE_NAME "AI-THINKER"
 #define CAMERA_PIN_PWDN 32
 #define CAMERA_PIN_RESET -1
 #define CAMERA_PIN_XCLK 0
@@ -24,7 +26,7 @@ namespace CameraDriver {
 #define CAMERA_PIN_HREF 23
 #define CAMERA_PIN_PCLK 22
 
-#define XCLK_FREQ_HZ 15000000
+#define XCLK_FREQ_HZ 40000000
 #define CAMERA_PIXFORMAT PIXFORMAT_RGB565
 #define CAMERA_FRAME_SIZE FRAMESIZE_240X240//FRAMESIZE_HVGA//
 #define CAMERA_FB_COUNT 2
