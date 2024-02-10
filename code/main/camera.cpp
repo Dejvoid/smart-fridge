@@ -78,8 +78,13 @@ void Camera::loop() {
     time1 = esp_timer_get_time();
     // Decode Progress
     esp_image_scanner_t *esp_scn = esp_code_scanner_create();
-    esp_code_scanner_config_t config = {ESP_CODE_SCANNER_MODE_FAST, ESP_CODE_SCANNER_IMAGE_RGB565, fb->width, fb->height};
-    esp_code_scanner_set_config(esp_scn, config);
+    esp_code_scanner_config_t config = {
+        .mode = ESP_CODE_SCANNER_MODE_FAST, 
+        .fmt = ESP_CODE_SCANNER_IMAGE_GRAY, 
+        .width = fb->width, 
+        .height = fb->height
+    };
+    ESP_ERROR_CHECK(esp_code_scanner_set_config(esp_scn, config));
     int decoded_num = esp_code_scanner_scan_image(esp_scn, fb->buf);
 
     if(decoded_num) {

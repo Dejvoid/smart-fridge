@@ -15,9 +15,9 @@
 #include <freertos/task.h>
 #include <cstring>
 #include <iostream>
-#include <esp_heap_caps.h>
 #include <driver/gpio.h>
 #include <driver/spi_master.h>
+#include <esp_heap_caps.h>
 
 
 namespace LcdDriver {
@@ -52,9 +52,6 @@ enum class Command {
     FRMCTR    = 0xB1,
 };
 
-constexpr int buff_len = 50*50*3; // We want to be able to draw 50x50 of display at once
-static uint8_t buff[buff_len];
-
 struct LcdPins {
     int mosi;        // SPI MOSI pin
     int miso;        // SPI MISO pin (set -1 if not used)
@@ -67,32 +64,38 @@ struct LcdPins {
 
 class LcdBase {
 public:
-    virtual void set_area(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y) = 0;
     virtual void draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t r, uint8_t g, uint8_t b) = 0;
     virtual void draw_line(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y, uint8_t r, uint8_t g, uint8_t b) = 0;
     virtual void draw_char(char c, uint16_t x, uint16_t y,  uint8_t r, uint8_t g, uint8_t b) = 0;
     virtual void draw_text(const std::string& str, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b) = 0;
     virtual void draw_buff(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) = 0;
+    virtual void draw_grayscale(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) = 0;
+    virtual void draw_565buff(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) = 0;
 };
 
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 class Lcd : public LcdBase {
-    spi_device_handle_t spi_handle;
-public:
-    Lcd();
-    void init();
+    spi_device_handle_t spi_handle_;
+    constexpr static size_t buff_len_ = H * 50 * 3;
+    uint8_t* buff_;
+
     void send_command(Command cmd);
     void send_data(const uint8_t* data, int len);
     void send_data(uint8_t);
     void send_addr_pair(uint16_t a1, uint16_t a2);
     void set_area(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y);
-    void draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t r, uint8_t g, uint8_t b);
-    void draw_line(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y, uint8_t r, uint8_t g, uint8_t b);
-    void draw_char(char c, uint16_t x, uint16_t y,  uint8_t r, uint8_t g, uint8_t b);
-    void draw_text(const std::string& str, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b);
-    void draw_buff(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h);
-    ~Lcd() {spi_device_release_bus(spi_handle);}
+public:
+    Lcd();
+    void init();
+    void draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t r, uint8_t g, uint8_t b) override;
+    void draw_line(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y, uint8_t r, uint8_t g, uint8_t b) override;
+    void draw_char(char c, uint16_t x, uint16_t y,  uint8_t r, uint8_t g, uint8_t b) override;
+    void draw_text(const std::string& str, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b) override;
+    void draw_buff(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) override;
+    void draw_grayscale(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) override;
+    void draw_565buff(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) override;
+    ~Lcd();
 };
 
 template <LcdPins PINS>
@@ -102,7 +105,15 @@ void IRAM_ATTR lcd_pre_transfer_callback(spi_transaction_t* t) {
 }
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
-Lcd<SPI, PINS, W, H>::Lcd() {}
+Lcd<SPI, PINS, W, H>::Lcd() {
+    buff_ = (uint8_t*)heap_caps_malloc(buff_len_, MALLOC_CAP_DMA);
+}
+
+template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
+Lcd<SPI, PINS, W, H>::~Lcd() {
+    heap_caps_free(buff_);
+    spi_device_release_bus(spi_handle_);
+}
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 void Lcd<SPI, PINS, W, H>::init() {
@@ -147,7 +158,7 @@ void Lcd<SPI, PINS, W, H>::init() {
     };
 
     ESP_ERROR_CHECK(spi_bus_initialize(SPI, &spi_cfg, SPI_DMA_CH_AUTO));
-    ESP_ERROR_CHECK(spi_bus_add_device(SPI, &spi_if_cfg, &spi_handle));
+    ESP_ERROR_CHECK(spi_bus_add_device(SPI, &spi_if_cfg, &spi_handle_));
     
     ESP_ERROR_CHECK(gpio_config(&gpio_cfg));
     gpio_set_level(PINS.rst, 0);
@@ -155,7 +166,7 @@ void Lcd<SPI, PINS, W, H>::init() {
     gpio_set_level(PINS.rst, 1);
     vTaskDelay(100 / portTICK_PERIOD_MS);
 
-    ESP_ERROR_CHECK(spi_device_acquire_bus(spi_handle, portMAX_DELAY));
+    ESP_ERROR_CHECK(spi_device_acquire_bus(spi_handle_, portMAX_DELAY));
 
     send_command(Command::SW_RST); // software reset
     vTaskDelay(150 / portTICK_PERIOD_MS);
@@ -188,7 +199,7 @@ void Lcd<SPI, PINS, W, H>::send_command(Command cmd) {
     t.tx_data[0] = (uint8_t)cmd;             //The data is the cmd itself
     t.user = (void*)0;              //D/C needs to be set to 0
     t.flags = SPI_TRANS_USE_TXDATA;
-    ESP_ERROR_CHECK(spi_device_polling_transmit(spi_handle, &t));
+    ESP_ERROR_CHECK(spi_device_polling_transmit(spi_handle_, &t));
 
 }
 
@@ -202,7 +213,7 @@ void Lcd<SPI, PINS, W, H>::send_data(const uint8_t* data, int len) {
     t.length = len * 8;             //Len is in bytes, transaction length is in bits.
     t.tx_buffer = data;             //Data
     t.user = (void*)1;              //D/C needs to be set to 1
-    ESP_ERROR_CHECK(spi_device_polling_transmit(spi_handle, &t)); //Transmit!
+    ESP_ERROR_CHECK(spi_device_polling_transmit(spi_handle_, &t)); //Transmit!
 }
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
@@ -213,7 +224,7 @@ void Lcd<SPI, PINS, W, H>::send_data(uint8_t data) {
     t.flags = SPI_TRANS_USE_TXDATA;
     t.length = 8;
     t.tx_data[0] = data;
-    ESP_ERROR_CHECK(spi_device_polling_transmit(spi_handle, &t)); //Transmit!
+    ESP_ERROR_CHECK(spi_device_polling_transmit(spi_handle_, &t)); //Transmit!
 }
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
@@ -227,11 +238,12 @@ void Lcd<SPI, PINS, W, H>::send_addr_pair(uint16_t a1, uint16_t a2) {
     t.tx_data[1] = a1 & 0xFF;
     t.tx_data[2] = a2 >> 8;
     t.tx_data[3] = a2 & 0xFF;
-    ESP_ERROR_CHECK(spi_device_polling_transmit(spi_handle, &t)); //Transmit!
+    ESP_ERROR_CHECK(spi_device_polling_transmit(spi_handle_, &t)); //Transmit!
 }
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 void Lcd<SPI, PINS, W, H>::set_area(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y) {
+    // Display is originally 320x480. Driver exchanges these to make it 480x320
     send_command(Command::PA_SET);
     send_addr_pair(from_x, to_x-1);
 
@@ -249,17 +261,17 @@ void Lcd<SPI, PINS, W, H>::draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_
     int j = 0;
     int ctr = 0;
     while (j < len) {
-        for (int i = 0; i < buff_len && j < len; i+=3, j+=3) {
-            buff[i]   = b;
-            buff[i+1] = g;
-            buff[i+2] = r;
+        for (int i = 0; i < buff_len_ && j < len; i+=3, j+=3) {
+            buff_[i]   = b;
+            buff_[i+1] = g;
+            buff_[i+2] = r;
             ctr+=3;
         }
-        if (j < len || j % buff_len == 0) {
-            send_data(buff, buff_len);
+        if (j < len || j % buff_len_ == 0) {
+            send_data(buff_, buff_len_);
         }
         else {
-            send_data(buff, (len % buff_len));
+            send_data(buff_, (len % buff_len_));
         }
     }
 }
@@ -305,6 +317,50 @@ void Lcd<SPI, PINS, W, H>::draw_buff(const uint8_t* buff, uint16_t x, uint16_t y
     for (int i = x; i < max_x; ++i) {
         send_data(buff + byte_ctr, (max_y - y)*3);
         byte_ctr += (max_y - y)*3;
+    }
+}
+
+template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
+void Lcd<SPI, PINS, W, H>::draw_grayscale(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) { 
+    set_area(x, y, w, h);
+    send_command(LcdDriver::Command::MEM_WR);
+    int j = 0;
+    for (int i = 0; i < w * h; ++i) {
+        auto r = buff[i];
+        auto g = buff[i];
+        auto b = buff[i];
+        buff_[j++] = b; 
+        buff_[j++] = g;
+        buff_[j++] = r;
+        if (j >= buff_len_) {
+            j = 0;
+            send_data(buff_, buff_len_);
+        }
+    }
+    if (j > 0) {
+        send_data(buff_, j);
+    }
+}
+
+template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
+void Lcd<SPI, PINS, W, H>::draw_565buff(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) { 
+    set_area(x, y, w, h);
+    send_command(LcdDriver::Command::MEM_WR);
+    int j = 0;
+    for (int i = 0; i < w * h * 2; i+=2) {
+        auto r = (buff[i] & 0xf8);
+        auto g = ((buff[i] & 0x07) << (3+2)) | ((buff[i+1] & 0xe0) >> 3);
+        auto b = (buff[i+1] & 0x1f) << 3;
+        buff_[j++] = b; 
+        buff_[j++] = g;
+        buff_[j++] = r;
+        if (j >= buff_len_) {
+            j = 0;
+            send_data(buff_, buff_len_);
+        }
+    }
+    if (j > 0) {
+        send_data(buff_, j);
     }
 }
 
