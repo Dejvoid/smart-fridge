@@ -44,23 +44,8 @@ void Camera::init() {
     }
 
     sensor_t *s = esp_camera_sensor_get();
-    if (s->id.PID == OV3660_PID || s->id.PID == OV2640_PID) {
-        s->set_vflip(s, 1); //flip it back
-    }
-    else if (s->id.PID == GC0308_PID){
-        s->set_hmirror(s, 0);
-    }
-    else if (s->id.PID == GC032A_PID){
-        s->set_vflip(s, 1);
-        // s->set_hmirror(s, 0); //something wrong
-    }
-
-    if (s->id.PID == OV3660_PID)
-    {
-        s->set_brightness(s, 2);
-        s->set_contrast(s, 3);
-    }
-    //return ESP_OK;
+    s->set_vflip(s, 1);
+    s->set_hmirror(s, 1);
 }
 
 const camera_fb_t* Camera::get_frame() {
@@ -97,4 +82,21 @@ void Camera::loop() {
     esp_code_scanner_destroy(esp_scn);
     esp_camera_fb_return(fb);
     vTaskDelay(10 / portTICK_PERIOD_MS);
+}
+
+void Camera::change_settings(Setting sett, int val) {
+    sensor_t* s = esp_camera_sensor_get();
+    switch (sett) {
+    case Setting::QUALITY:
+        s->set_quality(s, val);
+        break;
+    case Setting::SHARPNESS:
+        s->set_sharpness(s, val);
+        break;
+    case Setting::SATURATION:
+        s->set_saturation(s, val);
+        break;
+    default:
+        break;
+    }
 }

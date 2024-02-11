@@ -8,9 +8,6 @@
 #include <esp_http_client.h>
 #include <nvs_flash.h>
 
-constexpr size_t bufflen = 320 * 50 * 3;
-uint8_t buffer[bufflen];
-
 /**
  * Lcd constants definitions
 */
@@ -42,7 +39,10 @@ extern "C" void app_main(void)
 
     CameraDriver::Camera cam;
     cam.init();
-    
+    cam.change_settings(CameraDriver::Setting::QUALITY, 63);
+    cam.change_settings(CameraDriver::Setting::SHARPNESS, 2);
+    cam.change_settings(CameraDriver::Setting::SATURATION, -2);
+
     //I2cTempDriver::Temperature therm;
     //therm.init();
 
@@ -53,6 +53,7 @@ extern "C" void app_main(void)
     ConsoleCommander::Commander cmd{&lcd};
 
     while (true) {
+        cmd.therm_update(22.0, 40.0);
         cmd.loop();
         //therm.loop();
         auto fb = esp_camera_fb_get();
@@ -60,13 +61,10 @@ extern "C" void app_main(void)
             std::cout << "Error getting framebuffer" << std::endl;
         }
         else {
-            //lcd.draw_grayscale(fb->buf, 0, 0, fb->height, fb->width); // for some reason we have to exchange height with width
-            lcd.draw_565buff(fb->buf, 0, 0, fb->height, fb->width); // for some reason we have to exchange height with width
+            lcd.draw_grayscale(fb->buf, 0, 0, fb->width, fb->height);
+            //lcd.draw_565buff(fb->buf, 0, 0, fb->width, fb->height);
         }
         esp_camera_fb_return(fb);
-        //vTaskDelay(100 / portTICK_PERIOD_MS);
-        //cam.loop();
+        cam.loop();
     }
-
-   
 }

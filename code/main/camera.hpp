@@ -27,9 +27,17 @@ namespace CameraDriver {
 #define CAMERA_PIN_PCLK 22
 
 #define XCLK_FREQ_HZ 40000000
-#define CAMERA_PIXFORMAT PIXFORMAT_RGB565
-#define CAMERA_FRAME_SIZE FRAMESIZE_QVGA //FRAMESIZE_CIF //FRAMESIZE_240X240//FRAMESIZE_HVGA//
+#define CAMERA_PIXFORMAT PIXFORMAT_GRAYSCALE
+#define CAMERA_FRAME_SIZE FRAMESIZE_QVGA
 #define CAMERA_FB_COUNT 2
+
+enum class Setting {
+    QUALITY,  // Quality setting (0, 63)
+    BRIGHTNESS,  // Brightness setting (-2, 2)
+    CONTRAST,  // Contrast setting (-2, 2)
+    SATURATION,  // Saturation setting (-2, 2)
+    SHARPNESS,  // Sharpness setting (-2, 2)
+};
 
 class Camera {
     camera_fb_t *fb = NULL;
@@ -38,6 +46,7 @@ public:
     void init();
     void loop();
     const camera_fb_t* get_frame();
+    void change_settings(Setting sett, int value);
 };
 
 };

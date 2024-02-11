@@ -64,6 +64,8 @@ struct LcdPins {
 
 class LcdBase {
 public:
+    constexpr virtual uint16_t get_w() = 0;
+    constexpr virtual uint16_t get_h() = 0;
     virtual void draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t r, uint8_t g, uint8_t b) = 0;
     virtual void draw_line(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y, uint8_t r, uint8_t g, uint8_t b) = 0;
     virtual void draw_char(char c, uint16_t x, uint16_t y,  uint8_t r, uint8_t g, uint8_t b) = 0;
@@ -77,7 +79,7 @@ public:
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 class Lcd : public LcdBase {
     spi_device_handle_t spi_handle_;
-    constexpr static size_t buff_len_ = H * 50 * 3;
+    constexpr static size_t buff_len_ = W * 50 * 3;
     uint8_t* buff_;
 
     void send_command(Command cmd);
@@ -87,7 +89,11 @@ class Lcd : public LcdBase {
     void set_area(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y);
 public:
     Lcd();
+    ~Lcd();
     void init();
+
+    constexpr uint16_t get_w() override { return W; }
+    constexpr uint16_t get_h() override { return H; }
     void draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t r, uint8_t g, uint8_t b) override;
     void draw_line(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y, uint8_t r, uint8_t g, uint8_t b) override;
     void draw_char(char c, uint16_t x, uint16_t y,  uint8_t r, uint8_t g, uint8_t b) override;
@@ -95,7 +101,6 @@ public:
     void draw_buff(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) override;
     void draw_grayscale(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) override;
     void draw_565buff(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) override;
-    ~Lcd();
 };
 
 template <LcdPins PINS>
@@ -187,6 +192,9 @@ void Lcd<SPI, PINS, W, H>::init() {
     send_data((frs << 4) | diva);
     send_data(rtna);*/
 
+    send_command(Command::MADCTL);
+    send_data(0b00100000);
+
     draw_rect(0,0, W, H, 0x00, 0x00, 0x00); // Fill display with black
 }
 
@@ -244,10 +252,10 @@ void Lcd<SPI, PINS, W, H>::send_addr_pair(uint16_t a1, uint16_t a2) {
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 void Lcd<SPI, PINS, W, H>::set_area(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y) {
     // Display is originally 320x480. Driver exchanges these to make it 480x320
-    send_command(Command::PA_SET);
+    send_command(Command::CA_SET);
     send_addr_pair(from_x, to_x-1);
 
-	send_command(Command::CA_SET);
+	send_command(Command::PA_SET);
     send_addr_pair(from_y, to_y-1);
 }
 
@@ -289,8 +297,8 @@ void Lcd<SPI, PINS, W, H>::draw_line(uint16_t from_x, uint16_t from_y, uint16_t 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 void Lcd<SPI, PINS, W, H>::draw_char(char c, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b) {
     auto bmap = font8x8_basic[(int)c];
-    for (int i = 0; i < 8; ++i) {
-        for (int j = 0; j < 8; ++j) {
+    for (int i = 0; i < font_size; ++i) {
+        for (int j = 0; j < font_size; ++j) {
             if ((bmap[i] >> j) & 1) {
                 draw_rect(x + j, y + i,1,1,r,g,b);
             }
@@ -302,7 +310,7 @@ template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 void Lcd<SPI, PINS, W, H>::draw_text(const std::string& str, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b) {
     int i = 0;
     while (str[i] != '\0') {
-        draw_char(str[i], x + 8*i, y, r, g, b);
+        draw_char(str[i], x + font_size*i, y, r, g, b);
         ++i;
     }
 }
@@ -322,19 +330,24 @@ void Lcd<SPI, PINS, W, H>::draw_buff(const uint8_t* buff, uint16_t x, uint16_t y
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 void Lcd<SPI, PINS, W, H>::draw_grayscale(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) { 
-    set_area(x, y, w, h);
-    send_command(LcdDriver::Command::MEM_WR);
+    int max_x = (x + w <= W) ? x + w : W;
+    int max_y = (y + h <= H) ? y + h : H;
+    set_area(x, y, max_x, max_y);
+    send_command(Command::MEM_WR);
     int j = 0;
-    for (int i = 0; i < w * h; ++i) {
-        auto r = buff[i];
-        auto g = buff[i];
-        auto b = buff[i];
-        buff_[j++] = b; 
-        buff_[j++] = g;
-        buff_[j++] = r;
-        if (j >= buff_len_) {
-            j = 0;
-            send_data(buff_, buff_len_);
+    for (int l = 0; l < max_y; ++l) {
+        for (int c = 0; c < max_x; ++c) {
+            int ix = c + (l * w);
+            auto r = buff[ix];
+            auto g = buff[ix];
+            auto b = buff[ix];
+            buff_[j++] = b; 
+            buff_[j++] = g;
+            buff_[j++] = r;
+            if (j >= buff_len_) {
+                j = 0;
+                send_data(buff_, buff_len_);
+            }
         }
     }
     if (j > 0) {
@@ -344,19 +357,24 @@ void Lcd<SPI, PINS, W, H>::draw_grayscale(const uint8_t* buff, uint16_t x, uint1
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 void Lcd<SPI, PINS, W, H>::draw_565buff(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) { 
-    set_area(x, y, w, h);
-    send_command(LcdDriver::Command::MEM_WR);
+    int max_x = (x + w <= W) ? x + w : W;
+    int max_y = (y + h <= H) ? y + h : H;
+    set_area(x, y, max_x, max_y);
+    send_command(Command::MEM_WR);
     int j = 0;
-    for (int i = 0; i < w * h * 2; i+=2) {
-        auto r = (buff[i] & 0xf8);
-        auto g = ((buff[i] & 0x07) << (3+2)) | ((buff[i+1] & 0xe0) >> 3);
-        auto b = (buff[i+1] & 0x1f) << 3;
-        buff_[j++] = b; 
-        buff_[j++] = g;
-        buff_[j++] = r;
-        if (j >= buff_len_) {
-            j = 0;
-            send_data(buff_, buff_len_);
+    for (int l = 0; l < max_y; ++l) {
+        for (int c = 0; c < max_x; ++c) {
+            int i = ((c) + (l * w)) * 2;
+            auto r = (buff[i] & 0xf8);
+            auto g = ((buff[i] & 0x07) << (3+2)) | ((buff[i+1] & 0xe0) >> 3);
+            auto b = (buff[i+1] & 0x1f) << 3;
+            buff_[j++] = b; 
+            buff_[j++] = g;
+            buff_[j++] = r;
+            if (j >= buff_len_) {
+                j = 0;
+                send_data(buff_, buff_len_);
+            }
         }
     }
     if (j > 0) {
