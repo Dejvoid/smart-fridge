@@ -1,6 +1,5 @@
 /**
  * Datasheet: 
- * https://www.displayfuture.com/Display/datasheet/controller/ST7735.pdf
  * https://www.displayfuture.com/Display/datasheet/controller/ILI9488.pdf
  * Resolution: 480x320
  * SPI Mode: 4-wire
@@ -22,66 +21,136 @@
 
 namespace LcdDriver {
 
+/// @brief Color modes of the LCD
 enum class ColorMode {
-    // Color mode 1-1-1
+    /// @brief Color mode 1-1-1
     RGB_111 = 0b00000001,
-    // Color mode 6-6-6
+    /// @brief Color mode 6-6-6
     RGB_666 = 0b00000110,
     // [Not supported on ILI9488 over SPI] Color mode 5-6-5
     //RGB_565 = 0b00000101 
 };
 
+/// @brief Possible commands to control LCD
 enum class Command {
-    // Software reset command
+    /// @brief Software reset command
     SW_RST    = 0x01,
-    // Sleep out command
+    /// @brief Sleep out command
     SLP_OUT   = 0x11,
-    // Display on command
+    /// @brief Display on command
     DISP_ON   = 0x29,
-    // Set pixel color format command
+    /// @brief Set pixel color format command
     PIX_COL   = 0x3A,
-    // Set column address command
+    /// @brief Set column address command
     CA_SET    = 0x2A,
-    // Set page address command
+    /// @brief Set page address command
     PA_SET    = 0x2B,
-    // Memory write command
+    /// @brief Memory write command
     MEM_WR    = 0x2C,
-    // Memory Access Control
+    /// @brief Memory Access Control
     MADCTL    = 0x36,
-    // Frame rate control
+    /// @brief Frame rate control
     FRMCTR    = 0xB1,
 };
 
+/// @brief Struct for defining pins for LCD
 struct LcdPins {
-    int mosi;        // SPI MOSI pin
-    int miso;        // SPI MISO pin (set -1 if not used)
-    int sck;         // SPI SCK pin
-    int cs;          // SPI CS pin (set -1 if not used)
-    gpio_num_t rst;  // Display RST pin 
-    gpio_num_t dc;   // Display D/C pin 
+    /// @brief SPI MOSI pin
+    int mosi;
+    /// @brief SPI MISO pin (set -1 if not used)
+    int miso;
+    /// @brief SPI SCK pin
+    int sck;
+    /// @brief SPI CS pin (set -1 if not used)
+    int cs;
+    /// @brief LCD RST pin
+    gpio_num_t rst;
+    /// @brief LCD D/C pin (Data/Command)
+    gpio_num_t dc;
     constexpr LcdPins(int mosi, int miso, int sck, int cs, gpio_num_t rst, gpio_num_t dc) : mosi(mosi), miso(miso), sck(sck), cs(cs), rst(rst), dc(dc) {};
 };
 
+/**
+ * Interface for the Lcd
+*/
 class LcdBase {
 public:
+    /// @brief Gets width of the display
+    /// @return Width
     constexpr virtual uint16_t get_w() = 0;
+    /// @brief Gets height of the display
+    /// @return Height
     constexpr virtual uint16_t get_h() = 0;
+    /// @brief Draws single color rectangle on the given position
+    /// @param x X position of top left corner
+    /// @param y Y position of top left corner
+    /// @param w Width
+    /// @param h Height
+    /// @param r Red
+    /// @param g Green
+    /// @param b Blue
     virtual void draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t r, uint8_t g, uint8_t b) = 0;
+    /// @brief Draws line of given color
+    /// @param from_x Start X
+    /// @param from_y Start Y
+    /// @param to_x End X
+    /// @param to_y End Y
+    /// @param r Red
+    /// @param g Green
+    /// @param b Blue
     virtual void draw_line(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y, uint8_t r, uint8_t g, uint8_t b) = 0;
+    /// @brief Draws single character of given color on given position
+    /// @param c Character to draw
+    /// @param x Top left X
+    /// @param y Top left Y
+    /// @param r Red
+    /// @param g Green
+    /// @param b Blue
     virtual void draw_char(char c, uint16_t x, uint16_t y,  uint8_t r, uint8_t g, uint8_t b) = 0;
+    /// @brief Draws string of given color on given position
+    /// @param str String to draw
+    /// @param x Top left X
+    /// @param y Top left Y
+    /// @param r Red
+    /// @param g Green
+    /// @param b Blue
     virtual void draw_text(const std::string& str, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b) = 0;
+    /// @brief Draws 6-6-6 RGB buffer in given rectangle
+    /// @param buff Buffer to draw
+    /// @param x Top left X
+    /// @param y Top left Y
+    /// @param w Width
+    /// @param h Height
     virtual void draw_buff(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) = 0;
+    /// @brief Draws grayscale buffer in given rectangle
+    /// @param buff Buffer to draw
+    /// @param x Top left X
+    /// @param y Top left Y
+    /// @param w Width
+    /// @param h Height
     virtual void draw_grayscale(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) = 0;
+    /// @brief Draws 5-6-5 RGB buffer in given rectangle
+    /// @param buff Buffer to draw
+    /// @param x Top left X
+    /// @param y Top left Y
+    /// @param w Width
+    /// @param h Height
     virtual void draw_565buff(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) = 0;
 };
 
-
+/// @brief Implementation of LCD driver
+/// @tparam SPI - selected SPI host (VSPI_HOST, HSPI_HOST, ...)
+/// @tparam W - Width of the display
+/// @tparam H - Height of the display
+/// @tparam PINS - Pins that the display uses
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 class Lcd : public LcdBase {
+    /// @brief Handle of the LCD SPI device
     spi_device_handle_t spi_handle_;
+    /// @brief Length of balancing buffer
     constexpr static size_t buff_len_ = W * 50 * 3;
+    /// @brief Balancing buffer
     uint8_t* buff_;
-
     void send_command(Command cmd);
     void send_data(const uint8_t* data, int len);
     void send_data(uint8_t);
@@ -90,8 +159,8 @@ class Lcd : public LcdBase {
 public:
     Lcd();
     ~Lcd();
+    /// @brief Initialize LCD
     void init();
-
     constexpr uint16_t get_w() override { return W; }
     constexpr uint16_t get_h() override { return H; }
     void draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t r, uint8_t g, uint8_t b) override;

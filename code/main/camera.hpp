@@ -1,5 +1,7 @@
 /**
  * https://github.com/espressif/esp-who/blob/master/examples/code_recognition/main/app_peripherals.c
+ * 
+ * https://www.dragonwake.com/download/camera/ov2640/OV2640%20Camera%20Module%20Software%20Application%20Notes.pdf
 */
 #ifndef CAMERA_HPP_
 #define CAMERA_HPP_
@@ -31,6 +33,7 @@ namespace CameraDriver {
 #define CAMERA_FRAME_SIZE FRAMESIZE_QVGA
 #define CAMERA_FB_COUNT 2
 
+/// @brief User settings for the camera
 enum class Setting {
     QUALITY,  // Quality setting (0, 63)
     BRIGHTNESS,  // Brightness setting (-2, 2)
