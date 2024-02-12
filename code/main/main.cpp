@@ -32,7 +32,7 @@ extern "C" void app_main(void)
 
     WifiDriver::Wifi wifi;
     wifi.init();
-
+        
     constexpr LcdDriver::LcdPins lcd_pins{LCD_MOSI, LCD_MISO, LCD_SCK, LCD_CS, LCD_RST, LCD_DC};
     LcdDriver::Lcd<LCD_SPI, lcd_pins, LCD_W, LCD_H> lcd;
     lcd.init();
@@ -58,7 +58,7 @@ extern "C" void app_main(void)
         //therm.loop();
         auto fb = esp_camera_fb_get();
         if (fb == NULL) {
-            std::cout << "Error getting framebuffer" << std::endl;
+            printf("Error getting framebuffer\n");
         }
         else {
             lcd.draw_grayscale(fb->buf, 0, 0, fb->width, fb->height);

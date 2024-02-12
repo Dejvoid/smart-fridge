@@ -60,7 +60,7 @@ void Wifi::init() {
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_cfg) );
     ESP_ERROR_CHECK(esp_wifi_start() );
 
-    std::cout << "wifi_init_sta finished." << std::endl;
+    printf("wifi_init_sta finished.\n");
 
     /* Waiting until either the connection is established (WIFI_CONNECTED_BIT) or connection failed for the maximum
      * number of re-tries (WIFI_FAIL_BIT). The bits are set by event_handler() (see above) */

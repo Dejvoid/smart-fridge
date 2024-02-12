@@ -3,10 +3,9 @@
 
 #include <esp_wifi.h>
 #include <freertos/event_groups.h>
-#include <iostream>
 
-#define EXAMPLE_ESP_WIFI_SSID ""
-#define EXAMPLE_ESP_WIFI_PASS ""
+#define EXAMPLE_ESP_WIFI_SSID 
+#define EXAMPLE_ESP_WIFI_PASS 
 
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
@@ -23,11 +22,11 @@ namespace WifiDriver {
             if (s_retry_num < 20) {
                 esp_wifi_connect();
                 s_retry_num++;
-                std::cout << "retry to connect to the AP" << std::endl;
+                printf("retry to connect to the AP\n");
             } else {
                 xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
             }
-            std::cout << "connect to the AP fail" << std::endl;
+            printf("connect to the AP fail\n");
         } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
             ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
             printf("got ip:" IPSTR, IP2STR(&event->ip_info.ip));

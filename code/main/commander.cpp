@@ -1,20 +1,19 @@
 #include "commander.hpp"
 
-#include <iostream>
 
 using namespace ConsoleCommander;
 
 Commander::Commander(LcdDriver::LcdBase* lcd) : lcd_(lcd) {}
 
 void Commander::loop() {
-    int c = std::getchar();
+    int c = getchar();
     if (c != EOF) {
         if (c != '\n')
             line_ += c;
         else {
             //lcd_->draw_rect(temp_pos_x, temp_pos_y, temp_end_x, temp_end_y, 0x00, 0x00, 0x00);
             //lcd_->draw_text(line_, temp_pos_x, temp_pos_y, 0x00, 0xff, 0x00);
-            std::cout << line_ << std::endl;
+            printf("%s\n",line_.c_str());
             line_.clear();
         }
     }
