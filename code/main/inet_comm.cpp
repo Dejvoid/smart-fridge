@@ -2,15 +2,20 @@
 
 using namespace InetComm;
 
+Connection::Connection(const char* ip, uint16_t port) {
+    srv_ip_ = ip;
+    port_ = port;
+}
+
 void Connection::open() {
     rx_buff = (char*)malloc(rx_len);
     if (rx_buff == NULL) {
         ESP_LOGE(TAG, "Cannot allocate buffer");
         return;
     }
-    inet_pton(AF_INET, srv_ip, &dest_addr.sin_addr);
+    inet_pton(AF_INET, srv_ip_, &dest_addr.sin_addr);
     dest_addr.sin_family = AF_INET;
-    dest_addr.sin_port = htons(port);
+    dest_addr.sin_port = htons(port_);
     
     xTaskCreate((TaskFunction_t)&Connection::connect_, "connect task", 4096, this, 5, &conn_task);
 }
@@ -21,7 +26,7 @@ void Connection::connect_() {
         if (socket_ < 0) {
             ESP_LOGE(TAG, "Unable to create socket: errno %d", errno);
         }
-        ESP_LOGI(TAG, "Connecting to %s:%d", srv_ip, port);
+        ESP_LOGI(TAG, "Connecting to %s:%d", srv_ip_, port_);
         int err = connect(socket_, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
         if (err != 0) {
             ESP_LOGE(TAG, "Socket unable to connect: errno %d", err);
@@ -67,7 +72,7 @@ void Connection::recv_msg() {
         else {
             if (len < rx_len) {
                 rx_buff[len] = 0; // Null-terminate whatever we received and treat like a string
-                ESP_LOGI(TAG, "Received %d bytes from %s:", len, srv_ip);
+                ESP_LOGI(TAG, "Received %d bytes from %s:", len, srv_ip_);
                 ESP_LOGI(TAG, "%s", rx_buff);
                 // Notify commander
                 if (notif_q != NULL) {
@@ -75,7 +80,7 @@ void Connection::recv_msg() {
                 }
             }
             else {
-                ESP_LOGI(TAG, "Received %d bytes from %s:", len, srv_ip);
+                ESP_LOGI(TAG, "Received %d bytes from %s:", len, srv_ip_);
             }
         }
     }
