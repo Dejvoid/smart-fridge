@@ -1,6 +1,6 @@
 #include "camera.hpp"
+
 #include <esp_log.h>
-#include <esp_code_scanner.h>
 #include <esp_timer.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -53,35 +53,30 @@ const camera_fb_t* Camera::get_frame() {
     return fb;
 }
 
-void Camera::loop() {
-    fb = esp_camera_fb_get();
-    if(fb == NULL) {
-        ESP_LOGI("Camera.loop", "camera get failed\n");
-        return;
-    }
-
-    time1 = esp_timer_get_time();
-    // Decode Progress
-    esp_image_scanner_t *esp_scn = esp_code_scanner_create();
-    esp_code_scanner_config_t config = {
-        .mode = ESP_CODE_SCANNER_MODE_FAST, 
-        .fmt = ESP_CODE_SCANNER_IMAGE_GRAY, 
-        .width = fb->width, 
-        .height = fb->height
-    };
-    ESP_ERROR_CHECK(esp_code_scanner_set_config(esp_scn, config));
-    int decoded_num = esp_code_scanner_scan_image(esp_scn, fb->buf);
-
-    if(decoded_num) {
-        esp_code_scanner_symbol_t result = esp_code_scanner_result(esp_scn);
-        //time2 = esp_timer_get_time();
-        //ESP_LOGI("Camera.loop", "Decode time in %lld ms.", (time2 - time1) / 1000);
-        ESP_LOGI("Camera.loop", "Decoded %s symbol \"%s\"\n", result.type_name, result.data);
-    }
-    
-    esp_code_scanner_destroy(esp_scn);
+void Camera::ret_frame() {
     esp_camera_fb_return(fb);
-    vTaskDelay(10 / portTICK_PERIOD_MS);
+    fb = NULL;
+}
+
+bool Camera::scan_code(esp_code_scanner_symbol_t& res) {
+    bool ret = false;
+    if (fb != NULL) {
+        esp_image_scanner_t *esp_scn = esp_code_scanner_create();
+        esp_code_scanner_config_t config = {
+            .mode = ESP_CODE_SCANNER_MODE_FAST, 
+            .fmt = ESP_CODE_SCANNER_IMAGE_GRAY,
+            .width = fb->width,
+            .height = fb->height
+        };
+        ESP_ERROR_CHECK(esp_code_scanner_set_config(esp_scn, config));
+        int decoded_num = esp_code_scanner_scan_image(esp_scn, fb->buf);
+        if(decoded_num) {
+            res = esp_code_scanner_result(esp_scn);
+            ret = true;
+        }
+        esp_code_scanner_destroy(esp_scn);
+    }
+    return ret;
 }
 
 void Camera::change_settings(Setting sett, int val) {

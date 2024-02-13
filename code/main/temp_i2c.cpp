@@ -1,4 +1,5 @@
 #include "temp_i2c.hpp"
+
 #include <driver/i2c.h>
 
 using namespace I2cTempDriver;

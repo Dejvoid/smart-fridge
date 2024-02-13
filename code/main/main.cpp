@@ -3,6 +3,7 @@
 #include "wifi.hpp"
 #include "camera.hpp"
 #include "commander.hpp"
+#include "inet_comm.hpp"
 
 #include <driver/gpio.h>
 #include <esp_http_client.h>
@@ -32,7 +33,10 @@ extern "C" void app_main(void)
 
     WifiDriver::Wifi wifi;
     wifi.init();
-        
+
+    InetComm::InetComm conn;
+    conn.open();
+
     constexpr LcdDriver::LcdPins lcd_pins{LCD_MOSI, LCD_MISO, LCD_SCK, LCD_CS, LCD_RST, LCD_DC};
     LcdDriver::Lcd<LCD_SPI, lcd_pins, LCD_W, LCD_H> lcd;
     lcd.init();
@@ -46,25 +50,11 @@ extern "C" void app_main(void)
     //I2cTempDriver::Temperature therm;
     //therm.init();
 
-    //vTaskDelay(10 / portTICK_PERIOD_MS);
-    //OneWireDriver::OneWire ow;
-    //ow.init();
-
-    ConsoleCommander::Commander cmd{&lcd};
+    ConsoleCommander::Commander cmd{&lcd, &conn, &cam};
 
     while (true) {
         cmd.therm_update(22.0, 40.0);
         cmd.loop();
         //therm.loop();
-        auto fb = esp_camera_fb_get();
-        if (fb == NULL) {
-            printf("Error getting framebuffer\n");
-        }
-        else {
-            lcd.draw_grayscale(fb->buf, 0, 0, fb->width, fb->height);
-            //lcd.draw_565buff(fb->buf, 0, 0, fb->width, fb->height);
-        }
-        esp_camera_fb_return(fb);
-        cam.loop();
     }
 }
