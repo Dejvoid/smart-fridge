@@ -10,10 +10,7 @@ Smart fridge project running on ESP32-CAM and Linux server (Raspberry PI).
 - Raspberry PI or other Linux machine
 
 ## Installation
-TODO
-
-## Usage
-TODO
+See `code/README.md`
 
 ## Authors and acknowledgment
 David Hrivna
