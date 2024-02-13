@@ -108,7 +108,15 @@ public:
     /// @param b Blue
     virtual void draw_char(char c, uint16_t x, uint16_t y,  uint8_t r, uint8_t g, uint8_t b) = 0;
     /// @brief Draws string of given color on given position
-    /// @param str String to draw
+    /// @param str String (zero terminated) to draw
+    /// @param x Top left X
+    /// @param y Top left Y
+    /// @param r Red
+    /// @param g Green
+    /// @param b Blue
+    virtual void draw_text(const char* str, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b) = 0;
+    /// @brief Draws string of given color on given position
+    /// @param str String (zero terminated) to draw
     /// @param x Top left X
     /// @param y Top left Y
     /// @param r Red
@@ -166,6 +174,7 @@ public:
     void draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t r, uint8_t g, uint8_t b) override;
     void draw_line(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y, uint8_t r, uint8_t g, uint8_t b) override;
     void draw_char(char c, uint16_t x, uint16_t y,  uint8_t r, uint8_t g, uint8_t b) override;
+    void draw_text(const char* str, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b) override;
     void draw_text(const std::string& str, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b) override;
     void draw_buff(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) override;
     void draw_grayscale(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) override;
@@ -377,6 +386,15 @@ void Lcd<SPI, PINS, W, H>::draw_char(char c, uint16_t x, uint16_t y, uint8_t r, 
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 void Lcd<SPI, PINS, W, H>::draw_text(const std::string& str, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b) {
+    int i = 0;
+    while (str[i] != '\0') {
+        draw_char(str[i], x + font_size*i, y, r, g, b);
+        ++i;
+    }
+}
+
+template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
+void Lcd<SPI, PINS, W, H>::draw_text(const char* str, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b) {
     int i = 0;
     while (str[i] != '\0') {
         draw_char(str[i], x + font_size*i, y, r, g, b);

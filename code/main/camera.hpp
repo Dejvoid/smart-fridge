@@ -32,7 +32,7 @@ constexpr int CAMERA_PIN_PCLK = 22;
 constexpr int XCLK_FREQ_HZ = 24000000;
 constexpr pixformat_t CAMERA_PIXFORMAT = PIXFORMAT_GRAYSCALE;
 constexpr framesize_t CAMERA_FRAME_SIZE = FRAMESIZE_QVGA;
-constexpr int CAMERA_FB_COUNT = 2;
+constexpr int CAMERA_FB_COUNT = 1;
 
 /// @brief User settings for the camera
 enum class Setting {

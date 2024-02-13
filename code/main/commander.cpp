@@ -1,10 +1,43 @@
 #include "commander.hpp"
 
+#include <freertos/task.h>
+
 using namespace ConsoleCommander;
 
-Commander::Commander(LcdDriver::LcdBase* lcd, InetComm::InetComm* inet, CameraDriver::Camera* cam) : lcd_(lcd), inet_(inet), cam_(cam) {}
+Commander::Commander(LcdDriver::LcdBase* lcd, InetComm::Connection* inet, CameraDriver::Camera* cam) : lcd_(lcd), inet_(inet), cam_(cam) {
+    notif_q = xQueueCreate(max_notif_cnt, sizeof(char*));
+    inet_->notif_q = &notif_q;
+}
+
+void Commander::notify(const char* notif) {
+    uint8_t color[3] = {0x00, 0x00, 0x00};
+    switch (notif[0]) {
+        case '1': // low priority = GREEN
+            color[1] = 0xff;
+            break;
+        case '2': // mid priority = YELLOW
+            color[0] = 0xff;
+            color[1] = 0xff;
+            break;
+        case '3': // high priority = RED
+            color[0] = 0xff;
+            break;
+        default:
+            color[0] = 0xff;
+            color[1] = 0xff;
+            color[2] = 0xff;
+            break;
+    }
+    lcd_->draw_rect(0, lcd_->get_h() - LcdDriver::font_size, max_notif_len * LcdDriver::font_size, LcdDriver::font_size, 0x00,0x00,0x00);
+    lcd_->draw_text(notif, 0, lcd_->get_h() - LcdDriver::font_size, color[0], color[1], color[2]);
+}
 
 void Commander::loop() {
+    char* notification;
+    if (notif_q != NULL && xQueueReceive(notif_q, &notification, 0) == pdTRUE) {
+        notify(notification);
+    }
+
     handle_input();
     if (scan_on) {
         auto fb = cam_->get_frame();

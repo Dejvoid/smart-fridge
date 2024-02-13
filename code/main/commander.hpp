@@ -8,21 +8,30 @@
 
 #include <string>
 
+namespace InetComm {
+    class Connection;
+}
+
 namespace ConsoleCommander {
+
+constexpr int max_notif_cnt = 10;
+constexpr int max_notif_len = 32;
 
 class Commander {
     std::string line_;
     LcdDriver::LcdBase* lcd_;
     I2cTempDriver::Temperature* therm_;
-    InetComm::InetComm* inet_;
+    InetComm::Connection* inet_;
     CameraDriver::Camera* cam_;
     float temp_;
     float hum_;
     bool scan_on = false;
+    QueueHandle_t notif_q;
     void handle_cmd(const std::string& cmd);
     void handle_input();
+    void notify(const char* notification);
 public:
-    Commander(LcdDriver::LcdBase* lcd, InetComm::InetComm* inet, CameraDriver::Camera* cam);
+    Commander(LcdDriver::LcdBase* lcd, InetComm::Connection* inet, CameraDriver::Camera* cam);
     void loop();
     void therm_update(float temp, float hum);
 };

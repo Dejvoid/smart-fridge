@@ -33,6 +33,11 @@
 
     - 1 vs 2 pins needed
 
+## Server connection
+
+- Choosing how to treat connection (tasks or different approach)
+- Giving up on HTTP using pure sockets
+
 ## Debugging
 
 - Can't connect J-Tag because pins are used for display (if I want display I can't use J-Tag and vice versa)

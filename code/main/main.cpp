@@ -22,8 +22,7 @@ constexpr gpio_num_t LCD_RST        = GPIO_NUM_12;
 constexpr uint16_t LCD_W            = 480;
 constexpr uint16_t LCD_H            = 320;
 
-extern "C" void app_main(void)
-{   
+extern "C" void app_main(void) {   
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
       ESP_ERROR_CHECK(nvs_flash_erase());
@@ -34,7 +33,7 @@ extern "C" void app_main(void)
     WifiDriver::Wifi wifi;
     wifi.init();
 
-    InetComm::InetComm conn;
+    InetComm::Connection conn;
     conn.open();
 
     constexpr LcdDriver::LcdPins lcd_pins{LCD_MOSI, LCD_MISO, LCD_SCK, LCD_CS, LCD_RST, LCD_DC};
