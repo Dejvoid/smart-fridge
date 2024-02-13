@@ -21,9 +21,13 @@ constexpr int rd_len = 6;
 
 class Temperature {
     uint8_t rd_buf[rd_len];
+    float temp_;
+    float hum_;
 public:
     void init();
     void loop();
+    float get_temp();
+    float get_hum();
 };
 
 }
