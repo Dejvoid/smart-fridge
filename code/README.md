@@ -5,3 +5,4 @@
     - I personally used VSCode with esp-idf extension
 
 ## Wiring
+![Wiring](../connection.drawio.png)
