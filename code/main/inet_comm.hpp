@@ -24,6 +24,7 @@ constexpr int keep_idle = 1;
 constexpr int keep_interval = 1;
 constexpr int keep_count = 1;
 
+/// @brief Class responsible for socket connection handling
 class Connection {
     const char* srv_ip_;
     uint16_t port_; 
@@ -40,9 +41,16 @@ class Connection {
     void connect_();
     void recv_msg();
 public:
+    /// @brief Constructor
+    /// @param srv_ip - IP address string of server
+    /// @param port - port
     Connection(const char* srv_ip, uint16_t port);
+    /// @brief Open the connection to the server
     void open();
+    /// @brief Send message to the server
+    /// @param msg - Message to send
     void send_msg(const std::string& msg);
+    /// @brief Terminate connection
     void terminate();
 };
 

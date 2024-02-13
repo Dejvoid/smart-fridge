@@ -43,13 +43,23 @@ enum class Setting {
     SHARPNESS,  // Sharpness setting (-2, 2)
 };
 
+/// @brief Class for camera handling
 class Camera {
     camera_fb_t *fb = NULL;
 public:
     void init();
+    /// @brief Try finding code in camera buffer
+    /// @param res - Found code (if any)
+    /// @return - returns true if code was found
     bool scan_code(esp_code_scanner_symbol_t& res);
+    /// @brief Provides access to the camera buffer. Frame should be returned after use: See ret_frame
+    /// @return Camera buffer
     const camera_fb_t* get_frame();
+    /// @brief Returns buffer ownership back to the camera
     void ret_frame();
+    /// @brief Provides API for changing some camera settings
+    /// @param sett - Setting type
+    /// @param value - Setting value
     void change_settings(Setting sett, int value);
 };
 

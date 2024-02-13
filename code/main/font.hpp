@@ -7,7 +7,9 @@
 #include <inttypes.h>
 
 namespace LcdDriver {
+    /// @brief Size of the font is 8x8 pixels
     constexpr int font_size = 8;
+    /// @brief Charset
     constexpr uint8_t font8x8_basic[128][8] = {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   // U+0000 (nul)
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   // U+0001

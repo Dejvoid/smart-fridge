@@ -17,6 +17,7 @@ namespace ConsoleCommander {
 constexpr int max_notif_cnt = 10;
 constexpr int max_notif_len = 32;
 
+/// @brief Class responsible for input/output handling. Connects individual components
 class Commander {
     std::string line_;
     LcdDriver::LcdBase* lcd_;
@@ -31,6 +32,10 @@ class Commander {
     void handle_input();
     void notify(const char* notification);
 public:
+    /// @brief 
+    /// @param lcd - Pointer to LCD component 
+    /// @param inet - Pointer to connection component
+    /// @param cam - Pointer to camera component
     Commander(LcdDriver::LcdBase* lcd, InetComm::Connection* inet, CameraDriver::Camera* cam);
     void loop();
     void therm_update(float temp, float hum);
