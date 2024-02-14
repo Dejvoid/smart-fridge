@@ -25,8 +25,8 @@ constexpr uint16_t LCD_H            = 320;
 /**
  * Connection constants
 */
-constexpr const char* srv_ip = "192.168.1.112";
-constexpr uint16_t port = 666;
+constexpr const char* srv_ip = "10.42.0.1";
+constexpr uint16_t port = 80;
 
 extern "C" void app_main(void) {   
     esp_err_t ret = nvs_flash_init();
@@ -56,6 +56,7 @@ extern "C" void app_main(void) {
     //therm.init();
 
     ConsoleCommander::Commander cmd{&lcd, &conn, &cam};
+    lcd.draw_line(0, LCD_H - LcdDriver::font_size - 5, LCD_W, LCD_H - LcdDriver::font_size - 5, 0xff, 0xff, 0xff);
 
     while (true) {
         cmd.therm_update(22.0, 40.0);

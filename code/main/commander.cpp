@@ -48,11 +48,11 @@ void Commander::loop() {
             lcd_->draw_grayscale(fb->buf, 0, 0, fb->width, fb->height);
             //lcd.draw_565buff(fb->buf, 0, 0, fb->width, fb->height);
             esp_code_scanner_symbol_t scan;
-            if (cam_->scan_code(scan)) {
-                ESP_LOGI("Camera scan", "Decoded %s symbol \"%s\"\n", scan.type_name, scan.data);
+            if (cam_->scan_code(&scan)) {
+                ESP_LOGI("Camera scan", "Decoded %s symbol of lenght %d: \"%s\"", scan.type_name, (int)scan.datalen, scan.data);
                 std::string msg = "Scan: ";
                 msg += scan.data;
-                inet_->send_msg(std::string(scan.data));
+                inet_->send_msg(msg);
                 scan_on = false;
             }
         }

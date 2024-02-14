@@ -46,6 +46,8 @@ void Camera::init() {
     sensor_t *s = esp_camera_sensor_get();
     s->set_vflip(s, 1);
     s->set_hmirror(s, 1);
+
+    esp_scn = esp_code_scanner_create();
 }
 
 const camera_fb_t* Camera::get_frame() {
@@ -58,10 +60,10 @@ void Camera::ret_frame() {
     fb = NULL;
 }
 
-bool Camera::scan_code(esp_code_scanner_symbol_t& res) {
+bool Camera::scan_code(esp_code_scanner_symbol_t* res) {
     bool ret = false;
     if (fb != NULL) {
-        esp_image_scanner_t *esp_scn = esp_code_scanner_create();
+        
         esp_code_scanner_config_t config = {
             .mode = ESP_CODE_SCANNER_MODE_FAST, 
             .fmt = ESP_CODE_SCANNER_IMAGE_GRAY,
@@ -71,10 +73,10 @@ bool Camera::scan_code(esp_code_scanner_symbol_t& res) {
         ESP_ERROR_CHECK(esp_code_scanner_set_config(esp_scn, config));
         int decoded_num = esp_code_scanner_scan_image(esp_scn, fb->buf);
         if(decoded_num) {
-            res = esp_code_scanner_result(esp_scn);
+            *res = esp_code_scanner_result(esp_scn);
+            ESP_LOGI("Camera", "Scanned %s", res->data);
             ret = true;
         }
-        esp_code_scanner_destroy(esp_scn);
     }
     return ret;
 }
@@ -94,4 +96,8 @@ void Camera::change_settings(Setting sett, int val) {
     default:
         break;
     }
+}
+
+Camera::~Camera() {
+    esp_code_scanner_destroy(esp_scn);
 }
