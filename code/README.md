@@ -11,7 +11,7 @@
 1. Clone repository
 2. `cd smart-fridge/code/`
 3. `code .`
-4. Fill wifi SSID and password
+4. Fill wifi SSID and password. Edit pin numbers if needed.
 5. Open vscode quick-launch (`Ctrl+Shift+P`)
 6. `ESP-IDF: Build your project` (assuming ESP-IDF extension to be configured)
     - Or `ESP-IDF: Build, Flash and Start Monitor on your Device` to directly flash and monitor.
@@ -26,4 +26,6 @@
 
 ### Types of notifications:
 - No type - white color
-- Low priority()
+- Low priority (1) - green color
+- Medium priority (2) - yellow color
+- High priority (3) - red color
