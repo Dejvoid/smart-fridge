@@ -1,8 +1,8 @@
 # smart-fridge
 Projekt se zabývá implementací systému "chytré lednice." Jedná se o jednoduché zařízení, které bude mít uživatel u lednice/v kuchyni. Toto zařízení pak bude uživateli umožňovat skenovat produkty (čárový kód a datum spotřeby), které bude do lednice vkládat, a monitorovat aktuální teplotu v lednici. Informace o produktech pak budou uživateli k dispozici ve webové aplikaci.
 Projekt se skládá ze dvou částí: 
-Microcontrolleru, který se stará o sběr dat
-Server, který data zpracovává a poskytuje je uživateli
+- Microcontrolleru, který se stará o sběr dat
+- Server, který data zpracovává. Poskytuje seznam produktů, upozorňuje uživatele na blížící se datum spotřeby, udržuje databázi produktů a nákupní seznam.
 
 ## Zařízení pro sběr dat
 O sběr dat se stará deska ESP-32 s připojeným teploměrem, malým displejem a kamerou. 
