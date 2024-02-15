@@ -10,6 +10,12 @@ Hlavní úkol této desky je skenování čárových kódů, skenování data sp
 
 ## Server
 Jako server bude pracovat Raspberry Pi. Bude se starat hlavně o databázi produktů a uživatelský interface ve formě webové aplikace.
+Hlavní funkce: 
+- Zobrazení seznamu produktů v lednici
+- Posílání notifikací pro zařízení a zpracování dat ze zařízení
+- Zobrazení přehledu o blížících se datech trvanlivosti
+- Údržba nákupního seznamu
+- Přístup k databázi
 
 ### Uživatelský interface
 Uživatel si bude moci ve webové aplikaci zobrazit seznam produktů v lednici a jejich aktuální počet, uložené recepty z dostupných surovin, nákupní seznam
@@ -21,13 +27,13 @@ Zařízení budou připojena na společnou Wi-Fi síť, kde mezi sebou budou kom
 ## Hardwaree
  - ESP-32-CAM
  - Raspberry Pi
- - Dallas DS18B20 (teploměr)
- - SPI/I2C displej 128x64
+ - Teploměr
+ - LCD displej
 
 ## Technologie
- - ESP-32 - C++ ESP-IDF framework
+ - ESP-32 - C/C++ ESP-IDF framework
  - Raspberry Pi - Linux, C# web server
- - Knihovny: (pravděpodobně něco na práci s kamerou - OCR)
+ - Knihovny: [ESP-WHO](https://github.com/espressif/esp-who), [Open-CV](https://github.com/opencv/opencv)
 
 ## Hlavní Funkce
  - Seznam potravin v lednici
@@ -39,3 +45,11 @@ Zařízení budou připojena na společnou Wi-Fi síť, kde mezi sebou budou kom
 
 ## Vývojové prostředí
 Visual Studio Code + PlatformIO
+
+## Zdroje
+- [ESP-IDF](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/) (2024)
+- [C# documentation](https://learn.microsoft.com/en-us/dotnet/csharp/)
+- [C++ reference](https://en.cppreference.com/w/)
+- Developing IoT Projects with ESP32 - Second Edition, Oner, V. O. (2023), ISBN: 1803237686
+- ESP32 Formats and Communication, Cameron, N. (2023), ISBN: 1484293789
+- [OpenCV](https://github.com/opencv/opencv)
