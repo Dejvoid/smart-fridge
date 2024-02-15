@@ -17,9 +17,9 @@ Hlavní funkce:
 - Údržba nákupního seznamu
 - Přístup k databázi
 
-### Uživatelský interface
-Uživatel si bude moci ve webové aplikaci zobrazit seznam produktů v lednici a jejich aktuální počet, uložené recepty z dostupných surovin, nákupní seznam
-K zařízení pro sběr dat pak bude připojen menší displej, kde uživatel uvidí, co naskenoval.
+## Uživatelský interface
+Uživatel si bude moci ve webové aplikaci zobrazit seznam produktů v lednici a jejich aktuální počet, uložené recepty z dostupných surovin, nákupní seznam.
+K zařízení pro sběr dat pak bude připojen menší displej, kde uživatel uvidí, co naskenoval a oznámení systému.
 
 ## Komunikace mezi zařízeními
 Zařízení budou připojena na společnou Wi-Fi síť, kde mezi sebou budou komunikovat na základě HTTP protokolu.
