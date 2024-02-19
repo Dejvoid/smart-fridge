@@ -1,3 +1,7 @@
+/**
+ * commander.cpp
+ * This file contains the implementation of the ConsoleCommander class
+ */
 #include "commander.hpp"
 
 #include <freertos/task.h>
@@ -6,6 +10,7 @@ using namespace ConsoleCommander;
 
 Commander::Commander(LcdDriver::LcdBase* lcd, InetComm::Connection* inet, CameraDriver::Camera* cam) : lcd_(lcd), inet_(inet), cam_(cam) {
     notif_q = xQueueCreate(max_notif_cnt, sizeof(char*));
+    // Attach our queue to get notifications
     inet_->notif_q = &notif_q;
 }
 
@@ -38,20 +43,25 @@ void Commander::loop() {
         notify(notification);
     }
 
+    // Handle user console input
     handle_input();
     if (scan_on) {
         auto fb = cam_->get_frame();
         if (fb == NULL) {
+            // Didn't manage to get framebuffer in time
             printf("Error getting framebuffer\n");
         }
         else {
+            // Draw picture from camera
             lcd_->draw_grayscale(fb->buf, 0, 0, fb->width, fb->height);
             //lcd.draw_565buff(fb->buf, 0, 0, fb->width, fb->height);
             esp_code_scanner_symbol_t scan;
+            // Scan code
             if (cam_->scan_code(&scan)) {
                 ESP_LOGI("Camera scan", "Decoded %s symbol of lenght %d: \"%s\"", scan.type_name, (int)scan.datalen, scan.data);
                 std::string msg = "Scan: ";
                 msg += scan.data;
+                // Send scanned code to the server
                 inet_->send_msg(msg);
                 scan_on = false;
             }
@@ -63,6 +73,7 @@ void Commander::loop() {
 void Commander::therm_update(float temp, float hum) {
     temp_ = temp;
     hum_ = hum;
+    // Draw on display
     uint16_t temp_pos_x = lcd_->get_w() - 15*LcdDriver::font_size;
     uint16_t temp_pos_y = 0;
     uint16_t temp_end_x = lcd_->get_w();
@@ -72,7 +83,7 @@ void Commander::therm_update(float temp, float hum) {
     uint16_t hum_end_x = lcd_->get_w();
     uint16_t hum_end_y = hum_pos_y + LcdDriver::font_size;
     lcd_->draw_rect(temp_pos_x, temp_pos_y, temp_end_x, temp_end_y, 0x00, 0x00, 0x00);
-    std::string temp_str = "Temp: " + std::to_string(temp) +"°C";
+    std::string temp_str = "Temp: " + std::to_string(temp) + "°C";
     std::string hum_str = "Hum: " + std::to_string(hum) + "%";
     lcd_->draw_text(temp_str, temp_pos_x, temp_pos_y, 0x00, 0xff, 0x00);
     lcd_->draw_rect(hum_pos_x, hum_pos_y, hum_end_x, hum_end_y, 0x00, 0x00, 0x00);

@@ -1,3 +1,7 @@
+/**
+ * inet_comm.hpp
+ * This file contains definition of class responsible for connection and communication with the server.
+ */
 #ifndef INET_COMM_HPP_
 #define INET_COMM_HPP_
 
@@ -9,6 +13,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+// Forward declaration for friend class
 namespace ConsoleCommander {
     class Commander;
 };
@@ -36,6 +41,7 @@ class Connection {
     TaskHandle_t conn_task;
     QueueHandle_t* notif_q = NULL;
 
+    // Declared as friend to fill the notif_q
     friend class ConsoleCommander::Commander;
 
     void connect_();

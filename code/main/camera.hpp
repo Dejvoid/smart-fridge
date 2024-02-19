@@ -1,7 +1,10 @@
 /**
- * https://github.com/espressif/esp-who/blob/master/examples/code_recognition/main/app_peripherals.c
+ * camera.hpp
+ * This file contains definition of the camera controls.
  * 
- * https://www.dragonwake.com/download/camera/ov2640/OV2640%20Camera%20Module%20Software%20Application%20Notes.pdf
+ * Basic example from Espressif: https://github.com/espressif/esp-who/blob/master/examples/code_recognition/main/app_peripherals.c
+ * 
+ * OV2640 Camera datasheet: https://www.dragonwake.com/download/camera/ov2640/OV2640%20Camera%20Module%20Software%20Application%20Notes.pdf
 */
 #ifndef CAMERA_HPP_
 #define CAMERA_HPP_

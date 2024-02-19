@@ -1,4 +1,9 @@
-
+/**
+ * main.cpp 
+ * 
+ * This file contains main function of the whole firmware of the board.
+ * Firmware on startup initializes all the components. Then continues to main loop.
+ */
 #include "lcd.hpp"
 #include "wifi.hpp"
 #include "camera.hpp"

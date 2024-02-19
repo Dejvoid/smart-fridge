@@ -1,3 +1,7 @@
+/**
+ * camera.hpp
+ * This file contains implementation of camera controls.
+ */
 #include "camera.hpp"
 
 #include <esp_log.h>
@@ -43,10 +47,12 @@ void Camera::init() {
         //return ESP_FAIL;
     }
 
+    // Acquire the sensor from the esp_camera underlying driver and perform transformations to make the picture nice to work with
     sensor_t *s = esp_camera_sensor_get();
     s->set_vflip(s, 1);
     s->set_hmirror(s, 1);
 
+    // Initialize underlying scanner for codes
     esp_scn = esp_code_scanner_create();
 }
 
