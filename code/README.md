@@ -7,7 +7,7 @@
 ## Wiring
 ![Wiring](../connection.drawio.png)
 
-## Build process
+## Build process (using VSCode)
 1. Clone repository
 2. `cd smart-fridge/code/`
 3. `code .`
@@ -19,8 +19,8 @@
 ## Controls
 - Board is currently responsive to 3 console commands:
     - `send` - sends example temperature and humidity data to the server
-    - `start scan` - starts QR code scanning. Shows camera view on the display. After succhessful scan of the code, the scan automatically stops and sends scanned data to the server
-    - `stop scan` - manually stops scanning. No QR code is read
+    - `start scan` - starts code scanning. Shows camera view on the display. After successful scan of the code, the scan automatically stops and sends scanned data to the server
+    - `stop scan` - manually stops scanning. No code is read
 
 - Board is permanently connected to given server. If connection fails it tries to reconnect every second. If any data is received they are interpreted as notifications on the display.
 
@@ -29,3 +29,8 @@
 - Low priority (1) - green color
 - Medium priority (2) - yellow color
 - High priority (3) - red color
+
+### Display layout
+- Camera preview when scanning
+- Temperature and humidity
+- Notifications
