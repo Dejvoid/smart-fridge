@@ -1,3 +1,7 @@
+/**
+ * temp_i2c.cpp
+ * This file contains implementation of AHT10 I2C driver.
+ */
 #include "temp_i2c.hpp"
 
 #include <driver/i2c.h>
