@@ -1,4 +1,6 @@
 /**
+ * lcd.hpp
+ * This file contains definition and implementation of LcdDriver. Access to the display API is provided via templated class Lcd.
  * Datasheet: 
  * https://www.displayfuture.com/Display/datasheet/controller/ILI9488.pdf
  * Resolution: 480x320
@@ -181,6 +183,7 @@ public:
     void draw_565buff(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) override;
 };
 
+/// @brief This function is callback for SPI transactions for display to switch the D/C pin (0 when code, 1 when data)
 template <LcdPins PINS>
 void IRAM_ATTR lcd_pre_transfer_callback(spi_transaction_t* t) {
     int dc = (int)t->user;
@@ -189,6 +192,7 @@ void IRAM_ATTR lcd_pre_transfer_callback(spi_transaction_t* t) {
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 Lcd<SPI, PINS, W, H>::Lcd() {
+    // Allocate temporary buffer for performance balance when no raw data buffer is present.
     buff_ = (uint8_t*)heap_caps_malloc(buff_len_, MALLOC_CAP_DMA);
 }
 
@@ -200,6 +204,7 @@ Lcd<SPI, PINS, W, H>::~Lcd() {
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 void Lcd<SPI, PINS, W, H>::init() {
+    // constexpr definitions of the configurations for underlying SPI and GPIO
     constexpr spi_bus_config_t spi_cfg {
         .mosi_io_num = PINS.mosi,
         .miso_io_num = PINS.miso,
@@ -270,6 +275,7 @@ void Lcd<SPI, PINS, W, H>::init() {
     send_data((frs << 4) | diva);
     send_data(rtna);*/
 
+    // We use the display in "landscape" mode so we need to edit display memory access control
     send_command(Command::MADCTL);
     send_data(0b00100000);
 
@@ -280,10 +286,10 @@ template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 void Lcd<SPI, PINS, W, H>::send_command(Command cmd) {
     
     spi_transaction_t t;
-    memset(&t, 0, sizeof(t));       //Zero out the transaction
-    t.length = 8;                   //Command is 8 bits
-    t.tx_data[0] = (uint8_t)cmd;             //The data is the cmd itself
-    t.user = (void*)0;              //D/C needs to be set to 0
+    memset(&t, 0, sizeof(t));       // Zero out the transaction
+    t.length = 8;                   // Command is 8 bits
+    t.tx_data[0] = (uint8_t)cmd;    // The data is the cmd itself
+    t.user = (void*)0;              // D/C needs to be set to 0
     t.flags = SPI_TRANS_USE_TXDATA;
     ESP_ERROR_CHECK(spi_device_polling_transmit(spi_handle_, &t));
 
@@ -295,44 +301,46 @@ void Lcd<SPI, PINS, W, H>::send_data(const uint8_t* data, int len) {
         return;
     }
     spi_transaction_t t;
-    memset(&t, 0, sizeof(t));       //Zero out the transaction
-    t.length = len * 8;             //Len is in bytes, transaction length is in bits.
-    t.tx_buffer = data;             //Data
-    t.user = (void*)1;              //D/C needs to be set to 1
-    ESP_ERROR_CHECK(spi_device_polling_transmit(spi_handle_, &t)); //Transmit!
+    memset(&t, 0, sizeof(t));       // Zero out the transaction
+    t.length = len * 8;             // Len is in bytes, transaction length is in bits.
+    t.tx_buffer = data;             // Data
+    t.user = (void*)1;              // D/C needs to be set to 1
+    ESP_ERROR_CHECK(spi_device_polling_transmit(spi_handle_, &t)); // Transmit!
 }
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 void Lcd<SPI, PINS, W, H>::send_data(uint8_t data) {
     spi_transaction_t t;
-    memset(&t, 0, sizeof(t));       //Zero out the transaction
-    t.user = (void*)1;              //D/C needs to be set to 1
+    memset(&t, 0, sizeof(t));       // Zero out the transaction
+    t.user = (void*)1;              // D/C needs to be set to 1
     t.flags = SPI_TRANS_USE_TXDATA;
     t.length = 8;
     t.tx_data[0] = data;
-    ESP_ERROR_CHECK(spi_device_polling_transmit(spi_handle_, &t)); //Transmit!
+    ESP_ERROR_CHECK(spi_device_polling_transmit(spi_handle_, &t)); // Transmit!
 }
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 void Lcd<SPI, PINS, W, H>::send_addr_pair(uint16_t a1, uint16_t a2) {
     spi_transaction_t t;
-    memset(&t, 0, sizeof(t));       //Zero out the transaction
-    t.user = (void*)1;              //D/C needs to be set to 1
+    memset(&t, 0, sizeof(t));       // Zero out the transaction
+    t.user = (void*)1;              // D/C needs to be set to 1
     t.flags = SPI_TRANS_USE_TXDATA;
     t.length = 8 * (sizeof(a1) + sizeof(a2));
+    // Address data fits to 2 bytes so we use tx_data instead of sending the buffer
     t.tx_data[0] = a1 >> 8;
     t.tx_data[1] = a1 & 0xFF;
     t.tx_data[2] = a2 >> 8;
     t.tx_data[3] = a2 & 0xFF;
-    ESP_ERROR_CHECK(spi_device_polling_transmit(spi_handle_, &t)); //Transmit!
+    ESP_ERROR_CHECK(spi_device_polling_transmit(spi_handle_, &t)); // Transmit!
 }
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 void Lcd<SPI, PINS, W, H>::set_area(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y) {
-    // Display is originally 320x480. Driver exchanges these to make it 480x320
+    // Set column range
     send_command(Command::CA_SET);
     send_addr_pair(from_x, to_x-1);
 
+    // Set page range
 	send_command(Command::PA_SET);
     send_addr_pair(from_y, to_y-1);
 }
@@ -346,6 +354,7 @@ void Lcd<SPI, PINS, W, H>::draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_
     auto len = (max_x - x)*(max_y - y)*3;
     int j = 0;
     int ctr = 0;
+    // sending individual bytes for the color would take too much of SPI overhead so we use our buffer to reduce the overhead of SPI transactions
     while (j < len) {
         for (int i = 0; i < buff_len_ && j < len; i+=3, j+=3) {
             buff_[i]   = b;
@@ -366,6 +375,7 @@ template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 void Lcd<SPI, PINS, W, H>::draw_line(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y, uint8_t r, uint8_t g, uint8_t b) {
     uint16_t dx = to_x - from_x;
     uint16_t dy = to_y - from_y;
+    // We use naive approach to draw the lines since even the longest line is not too many pixels
     for (auto x = from_x; x < to_x; ++x) {
         auto y = from_y + dy * (x - from_x) / dx;
         draw_rect(x,y,1,1,r,g,b);
@@ -375,8 +385,10 @@ void Lcd<SPI, PINS, W, H>::draw_line(uint16_t from_x, uint16_t from_y, uint16_t 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 void Lcd<SPI, PINS, W, H>::draw_char(char c, uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b) {
     auto bmap = font8x8_basic[(int)c];
+    // We use naive approach to draw the characteers since number of pixels per character is not that big
     for (int i = 0; i < font_size; ++i) {
         for (int j = 0; j < font_size; ++j) {
+            // Comes from definition of the font. See original repository of the font for more information
             if ((bmap[i] >> j) & 1) {
                 draw_rect(x + j, y + i,1,1,r,g,b);
             }
@@ -409,6 +421,7 @@ void Lcd<SPI, PINS, W, H>::draw_buff(const uint8_t* buff, uint16_t x, uint16_t y
     set_area(x, y, max_x, max_y);
     send_command(Command::MEM_WR);
     int byte_ctr = 0;
+    // We draw line per line to make sure that the image is shown correctly even if user draws "out of boundary"
     for (int i = x; i < max_x; ++i) {
         send_data(buff + byte_ctr, (max_y - y)*3);
         byte_ctr += (max_y - y)*3;
@@ -422,6 +435,7 @@ void Lcd<SPI, PINS, W, H>::draw_grayscale(const uint8_t* buff, uint16_t x, uint1
     set_area(x, y, max_x, max_y);
     send_command(Command::MEM_WR);
     int j = 0;
+    // grayscale buffer needs transformation to fit display 666 format
     for (int l = 0; l < max_y; ++l) {
         for (int c = 0; c < max_x; ++c) {
             int ix = c + (l * w);
@@ -449,6 +463,7 @@ void Lcd<SPI, PINS, W, H>::draw_565buff(const uint8_t* buff, uint16_t x, uint16_
     set_area(x, y, max_x, max_y);
     send_command(Command::MEM_WR);
     int j = 0;
+    // Buffer needs transformation to fit display's 666 format
     for (int l = 0; l < max_y; ++l) {
         for (int c = 0; c < max_x; ++c) {
             int i = ((c) + (l * w)) * 2;
