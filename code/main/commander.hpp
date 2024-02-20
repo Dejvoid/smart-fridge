@@ -22,7 +22,7 @@ constexpr int max_notif_cnt = 10;
 // Maximal length of a signle notification.
 constexpr int max_notif_len = 32;
 
-/// @brief Class responsible for input/output handling and interconnection individual components
+/// @brief Class responsible for input/output handling and interconnection individual components. Provides access to components over the commands and takes care of drawing notifications
 class Commander {
     std::string line_;
     LcdDriver::LcdBase* lcd_;
@@ -33,11 +33,16 @@ class Commander {
     float hum_;
     bool scan_on = false;
     QueueHandle_t notif_q;
+    /// @brief Executes command string
+    /// @param cmd - command to execute
     void handle_cmd(const std::string& cmd);
+    /// @brief Read input from console
     void handle_input();
+    /// @brief Process notification. Show it on display.
+    /// @param notification - Notification text
     void notify(const char* notification);
 public:
-    /// @brief 
+    /// @brief Constructor taking in components of the system
     /// @param lcd - Pointer to LCD component 
     /// @param inet - Pointer to connection component
     /// @param cam - Pointer to camera component

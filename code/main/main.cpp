@@ -57,6 +57,7 @@ extern "C" void app_main(void) {
     cam.change_settings(CameraDriver::Setting::SHARPNESS, 2);
     cam.change_settings(CameraDriver::Setting::SATURATION, -2);
 
+    // Temperature driver initialization. Currently not supported due to lack of pins for the communication
     //I2cTempDriver::Temperature therm;
     //therm.init();
 
@@ -64,7 +65,7 @@ extern "C" void app_main(void) {
     lcd.draw_line(0, LCD_H - LcdDriver::font_size - 5, LCD_W, LCD_H - LcdDriver::font_size - 5, 0xff, 0xff, 0xff);
 
     while (true) {
-        cmd.therm_update(22.0, 40.0);
+        cmd.therm_update(22.0, 40.0); // Dummy values for now since we can't connect thermometer
         cmd.loop();
         //therm.loop();
     }

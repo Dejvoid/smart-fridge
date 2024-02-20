@@ -39,12 +39,12 @@ void Camera::init() {
     config.fb_location = CAMERA_FB_IN_PSRAM;
     config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
 
-    // camera init
+    // camera initialization
     esp_err_t err = esp_camera_init(&config);
     if (err != ESP_OK)
     {
         ESP_LOGE("camera.cpp","Camera init failed with error 0x%x", err);
-        //return ESP_FAIL;
+        return;
     }
 
     // Acquire the sensor from the esp_camera underlying driver and perform transformations to make the picture nice to work with

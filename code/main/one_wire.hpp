@@ -1,17 +1,25 @@
+/**
+ * Development temporarily discontinued due to hardware failure
+*/
 #ifndef ONE_WIRE_HPP_
 #define ONE_WIRE_HPP_
 
 #include <driver/gptimer.h>
 
-bool timer_callback(gptimer_t*, const gptimer_alarm_event_data_t*, void*);
+namespace OneWireDriver {
+
+void timer_callback(void* args);
 
 class OneWire {
-    gptimer_handle_t tim;
+    bool one;
+    gptimer_handle_t tim = NULL;
     gptimer_config_t tim_cfg;
     gptimer_alarm_config_t alarm_cfg;
-    gptimer_event_callbacks_t tim_callback;
 public:
     void init();
+    void send_rst();
+};
+
 };
 
 #endif

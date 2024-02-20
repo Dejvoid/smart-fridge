@@ -20,6 +20,7 @@ void Connection::open() {
     dest_addr.sin_family = AF_INET;
     dest_addr.sin_port = htons(port_);
     
+    // Create connection task
     xTaskCreate((TaskFunction_t)&Connection::connect_, "connect task", 4096, this, 5, &conn_task);
 }
 
@@ -40,6 +41,7 @@ void Connection::connect_() {
         connected_ = true;
         ESP_LOGI(TAG, "Successfully connected");
 
+        // Create task for receiving messages
         xTaskCreate((TaskFunction_t)&Connection::recv_msg, "inet_recv", 4096, this, 5, &recv_task);
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
     }

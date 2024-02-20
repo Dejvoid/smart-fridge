@@ -1,4 +1,8 @@
 /**
+ * Font header
+ * 
+ * Provides font for LCD driver. Size of characters is 8x8
+ * 
  * Font: https://github.com/dhepper/font8x8
 */
 #ifndef FONT_HPP_

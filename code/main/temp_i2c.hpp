@@ -32,6 +32,7 @@ constexpr uint8_t meas_cmd[meas_cmd_len] = { 0xAC, 0b00110011, 0 };
 /// @brief Measurement data length in bytes
 constexpr int rd_len = 6;
 
+/// @brief Takes care of temperature and humidity sensor.
 class Temperature {
     /// @brief Buffer for data read
     uint8_t rd_buf[rd_len];
@@ -40,10 +41,14 @@ class Temperature {
 public:
     /// @brief Initialize thermometer to start operating
     void init();
-    /// @brief Call this in the loop. Starts meaasurement and updates temperature and humidity fields
+    /// @brief Call this in the loop. Starts meaasurement and updates temperature and humidity values
     void loop();
-    float get_temp();
-    float get_hum();
+    /// @brief Get measured temperature
+    /// @return Measured temperature in Celsius
+    inline float get_temp();
+    /// @brief Get measured humidity
+    /// @return Measured humidity in percents
+    inline float get_hum();
 };
 
 }

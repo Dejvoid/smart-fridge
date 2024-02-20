@@ -10,7 +10,7 @@ using namespace ConsoleCommander;
 
 Commander::Commander(LcdDriver::LcdBase* lcd, InetComm::Connection* inet, CameraDriver::Camera* cam) : lcd_(lcd), inet_(inet), cam_(cam) {
     notif_q = xQueueCreate(max_notif_cnt, sizeof(char*));
-    // Attach our queue to get notifications
+    // Attach our queue to the connection handler to get notifications
     inet_->notif_q = &notif_q;
 }
 
@@ -27,7 +27,7 @@ void Commander::notify(const char* notif) {
         case '3': // high priority = RED
             color[0] = 0xff;
             break;
-        default:
+        default: // default (no priority) = WHITE
             color[0] = 0xff;
             color[1] = 0xff;
             color[2] = 0xff;
@@ -39,12 +39,15 @@ void Commander::notify(const char* notif) {
 
 void Commander::loop() {
     char* notification;
+    // Check for new notifications and if there are any, notify
     if (notif_q != NULL && xQueueReceive(notif_q, &notification, 0) == pdTRUE) {
         notify(notification);
     }
 
     // Handle user console input
     handle_input();
+
+    // Scan with camera
     if (scan_on) {
         auto fb = cam_->get_frame();
         if (fb == NULL) {
@@ -71,6 +74,7 @@ void Commander::loop() {
 }
 
 void Commander::therm_update(float temp, float hum) {
+    // Update internal values
     temp_ = temp;
     hum_ = hum;
     // Draw on display

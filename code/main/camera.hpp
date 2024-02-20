@@ -46,11 +46,12 @@ enum class Setting {
     SHARPNESS,  // Sharpness setting (-2, 2)
 };
 
-/// @brief Class for camera handling
+/// @brief Class for camera handling. Supports getting the frame buffer and scanning QR and barcodes.
 class Camera {
     camera_fb_t *fb = NULL;
     esp_image_scanner_t *esp_scn;
 public:
+    /// @brief Initialize the camera for usage
     void init();
     /// @brief Try finding code in camera buffer
     /// @param res - Found code (if any)

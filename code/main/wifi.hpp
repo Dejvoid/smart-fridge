@@ -1,11 +1,18 @@
+/**
+ * WiFi connection header
+ * 
+ * Takes care of WiFi connection. 
+*/
 #ifndef WIFI_HPP_
 #define WIFI_HPP_
 
 #include <esp_wifi.h>
 #include <freertos/event_groups.h>
 
-#define EXAMPLE_ESP_WIFI_SSID 
-#define EXAMPLE_ESP_WIFI_PASS 
+/// @brief WiFi SSID
+#define EXAMPLE_ESP_WIFI_SSID ""
+/// @brief WiFi Password
+#define EXAMPLE_ESP_WIFI_PASS ""
 
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
@@ -15,6 +22,11 @@ namespace WifiDriver {
     static EventGroupHandle_t s_wifi_event_group;
     static int s_retry_num = 0;
 
+    /// @brief Basic handler of connection associated events.
+    /// @param arg          Arguments for the handler (currently unused)
+    /// @param event_base   Group of event
+    /// @param event_id     Concrete event
+    /// @param event_data   Event data
     static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
         if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
             esp_wifi_connect();
@@ -35,10 +47,11 @@ namespace WifiDriver {
         }
     }
 
+/// @brief Takes care of Wifi and overall connnection initiation and keeping.
 class Wifi {
 public:
+    /// @brief Initialize wifi connection and IP stack
     void init();
-    
 };
 }
 #endif
