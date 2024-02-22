@@ -34,3 +34,6 @@
 - Camera preview when scanning
 - Temperature and humidity
 - Notifications
+
+### Server connection
+The board has continuously open connection to the web server. If the connection fails the board tries to reconnect automatically.
