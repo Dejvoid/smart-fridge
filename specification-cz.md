@@ -44,7 +44,7 @@ Zařízení budou připojena na společnou Wi-Fi síť, kde mezi sebou budou kom
  - Recepty ze surovin v lednici
 
 ## Vývojové prostředí
-Visual Studio Code + PlatformIO
+Visual Studio Code + Espressiff IDE Extension
 
 ## Zdroje
 - [ESP-IDF](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/) (2024, v5.1.2)
