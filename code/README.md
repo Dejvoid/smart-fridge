@@ -1,4 +1,7 @@
 # Instructions for board setup
+## Before Build
+Before building you need to set WiFi SSID and Password in `wifi.hpp` file and set server IP and port in the `main.cpp` file.
+
 
 ## Build environment
 - [esp-idf](https://github.com/espressif/esp-idf) (tested on version 5.1.2) 
