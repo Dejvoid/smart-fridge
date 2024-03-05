@@ -27,6 +27,8 @@ Before building you need to set WiFi SSID and Password in `wifi.hpp` file and se
 
 - Board is permanently connected to given server. If connection fails it tries to reconnect every second. If any data is received they are interpreted as notifications on the display.
 
+- Any message received from the server will be displayed on the bottom of the display.
+
 ### Types of notifications:
 - No type - white color
 - Low priority (1) - green color
