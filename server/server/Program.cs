@@ -6,10 +6,9 @@ IPAddress ip = IPAddress.Any;
 int port = 2666;
 var ipEndpoint = new IPEndPoint(ip, port);
 
-//Thread httpThread = new Thread();
-//
-//httpThread.Start();
-IDataController productController = new DataController();
+using var db = new FridgeContext();
+
+IDataController productController = new DataController(db);
 
 SocketServer server = new SocketServer(ipEndpoint, productController);
 

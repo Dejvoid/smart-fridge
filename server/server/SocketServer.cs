@@ -77,8 +77,14 @@ class SocketServer : IDisposable {
                 SendMessage(productControl.RemoveProduct(msgParts[1]).ToString());
             break;
             case "temp":
+                float temp;
+                if (float.TryParse(msgParts[1], out temp)) {
+                    if (temp > 10.0) {
+                        SendMessage("3: Temperature too high!");
+                    }
+                }
             break;
-            case "notif":
+            case "notify":
 
             break;
             default:

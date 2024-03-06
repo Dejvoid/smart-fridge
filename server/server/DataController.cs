@@ -5,25 +5,36 @@ interface IDataController {
 
 class DataController : IDataController
 {
-    private Dictionary<string, int> products = new Dictionary<string, int>();
+    private FridgeContext dbContext;
+    public DataController(FridgeContext db)
+    {
+        dbContext = db;
+    }
     public int AddProduct(string identifier)
     {
-        if (products.ContainsKey(identifier)) {
-            ++products[identifier];
+        var product = dbContext.Products.Where<Product>(p => p.Barcode == identifier).FirstOrDefault();
+        if (product == null) {
+            product = dbContext.Add(new Product(identifier, "", DateTime.Now.AddDays(3))).Entity;
         }
-        else {
-            products.Add(identifier, 1);
-        }
-        return products[identifier];
+        var ret =  ++product.Count;
+        dbContext.SaveChanges();
+        return ret;
     }
 
     public int RemoveProduct(string identifier)
     {
-        if (products.ContainsKey(identifier)) {
-            return --products[identifier];
+        var product = dbContext.Products.Where(p => p.Barcode == identifier).FirstOrDefault();
+        int ret;
+        if (product != null) {
+            if (product.Count >= 1)
+                --product.Count;
+            ret = product.Count;
         }
         else {
-            return 0;
+            dbContext.Products.Add(new Product(identifier, "", DateTime.Now));
+            ret = 0;
         }
+        dbContext.SaveChanges();
+        return ret;
     }
 }
