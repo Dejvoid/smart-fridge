@@ -10,9 +10,11 @@ using var db = new FridgeContext();
 
 IDataController productController = new DataController(db);
 
-SocketServer server = new SocketServer(ipEndpoint, productController);
+SocketServer socketServer = new SocketServer(ipEndpoint, productController);
+HttpServer httpServer = new HttpServer(productController);
 
-server.Start();
+socketServer.Start();
+httpServer.Start();
 
 while(true)
     Thread.Sleep(100000);
