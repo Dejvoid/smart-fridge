@@ -32,6 +32,7 @@ class Commander {
     float temp_;
     float hum_;
     bool scan_on = false;
+    std::string msg_;
     QueueHandle_t notif_q;
     /// @brief Executes command string
     /// @param cmd - command to execute

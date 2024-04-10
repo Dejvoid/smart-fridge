@@ -30,8 +30,8 @@ constexpr uint16_t LCD_H            = 320;
 /**
  * Connection constants
 */
-constexpr const char* srv_ip = "10.42.0.1";
-constexpr uint16_t port = 80;
+constexpr const char* srv_ip = "192.168.1.104";
+constexpr uint16_t port = 2666;
 
 extern "C" void app_main(void) {   
     esp_err_t ret = nvs_flash_init();

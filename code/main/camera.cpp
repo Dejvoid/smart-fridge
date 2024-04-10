@@ -8,6 +8,7 @@
 #include <esp_timer.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <cstring>
 
 using namespace CameraDriver;
 
@@ -81,6 +82,9 @@ bool Camera::scan_code(esp_code_scanner_symbol_t* res) {
         if(decoded_num) {
             *res = esp_code_scanner_result(esp_scn);
             ESP_LOGI("Camera", "Scanned %s", res->data);
+            // Throw away old scanner since it bugs
+            esp_code_scanner_destroy(esp_scn);
+            esp_scn = esp_code_scanner_create();
             ret = true;
         }
     }

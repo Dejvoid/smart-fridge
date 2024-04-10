@@ -62,10 +62,10 @@ void Commander::loop() {
             // Scan code
             if (cam_->scan_code(&scan)) {
                 ESP_LOGI("Camera scan", "Decoded %s symbol of lenght %d: \"%s\"", scan.type_name, (int)scan.datalen, scan.data);
-                std::string msg = "Scan: ";
-                msg += scan.data;
+                msg_ += " ";
+                msg_ += scan.data;
                 // Send scanned code to the server
-                inet_->send_msg(msg);
+                inet_->send_msg(msg_);
                 scan_on = false;
             }
         }
@@ -98,8 +98,17 @@ void Commander::handle_cmd(const std::string& cmd) {
     if (cmd == "send") {
         inet_->send_msg("Temp: "+std::to_string(temp_)+"; Hum: "+std::to_string(hum_)+"");
     }
+    else if (cmd == "add product") {
+        scan_on = true;
+        msg_ = "add";
+    }
+    else if (cmd == "rm product") {
+        scan_on = true;
+        msg_ = "rm";
+    }
     else if (cmd == "start scan") {
         scan_on = true;
+        msg_ = "scanned";
     }
     else if (cmd == "stop scan") {
         scan_on = false;

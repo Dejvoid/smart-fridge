@@ -1,6 +1,9 @@
 interface IDataController {
     public int AddProduct(string identifier);
     public int RemoveProduct(string identifier);
+    public List<Product> ListProducts();
+    public List<Recipe> ListRecipes();
+    public Product? GetProduct(int id);
 }
 
 class DataController : IDataController
@@ -36,5 +39,18 @@ class DataController : IDataController
         }
         dbContext.SaveChanges();
         return ret;
+    }
+
+    public List<Product> ListProducts() {
+        return dbContext.Products.ToList();
+    }
+
+    public List<Recipe> ListRecipes() {
+        return dbContext.Recipes.ToList();
+    }
+
+    public Product? GetProduct(int id)
+    {
+        return dbContext.Products.FirstOrDefault(p => p.Id == id);
     }
 }
