@@ -1,6 +1,10 @@
 using System.Net;
+using System.Text;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
+/// <summary>
+/// HTTP server for communication with the user
+/// </summary>
 class HttpServer {
     private HttpListener http;
     private IDataController db;
@@ -11,6 +15,9 @@ class HttpServer {
         db = products;
     }
 
+    /// <summary>
+    /// Start the HTTP server
+    /// </summary>
     public async void Start() {
         http.Start();
         while (true) {
@@ -20,6 +27,10 @@ class HttpServer {
         }
     }
 
+    /// <summary>
+    /// Handle the HTTP request from the given context
+    /// </summary>
+    /// <param name="ctx">HTTP context</param>
     private void HandleRequest(HttpListenerContext ctx) {
         var request = ctx.Request;
         Console.WriteLine(request.RawUrl);
@@ -41,9 +52,17 @@ class HttpServer {
         }
         else if (ctx.Request.HttpMethod.ToLower() == "post") {
             Console.WriteLine("poosting");
+            byte[] postData = new byte[1024];
+            int size = ctx.Request.InputStream.Read(postData);
+            string data = ctx.Request.ContentEncoding.GetString(postData);
         }
     }
 
+    /// <summary>
+    /// Handle products section
+    /// </summary>
+    /// <param name="url">Requested URL</param>
+    /// <param name="ctx">HTTP context</param>
     private void HandleProducts(string url, HttpListenerContext ctx) {
         if (url == "") {
             ViewProducts(ctx);
@@ -63,14 +82,27 @@ class HttpServer {
         ViewProducts(ctx);
     }
 
+    /// <summary>
+    /// Handle recipe section
+    /// </summary>
+    /// <param name="url">Requested URL</param>
+    /// <param name="ctx">HTTP context</param>
     private void HandleRecipes(string url, HttpListenerContext ctx) {
         ViewRecipes(ctx);
     }
 
+    /// <summary>
+    /// Default page
+    /// </summary>
+    /// <param name="ctx"></param>
     private void ViewDefault(HttpListenerContext ctx) {
         SendHtml("Main page", ctx);
     }
 
+    /// <summary>
+    /// Products list page
+    /// </summary>
+    /// <param name="ctx">HTTP context</param>
     private void ViewProducts(HttpListenerContext ctx) {
         var products = db.ListProducts();
         string htmlBody = "<h1>Products page: </h1>";
@@ -83,6 +115,10 @@ class HttpServer {
         SendHtml(htmlBody, ctx);
     }
 
+    /// <summary>
+    /// Recipes list page
+    /// </summary>
+    /// <param name="ctx">HTTP context</param>
     private void ViewRecipes(HttpListenerContext ctx) {
         var recipes = db.ListRecipes();
         string htmlBody = "<h1>recipes page: </h1>";
@@ -95,15 +131,47 @@ class HttpServer {
         SendHtml(htmlBody, ctx);
     }
 
+    /// <summary>
+    /// Product editing page
+    /// </summary>
+    /// <param name="p">Product to be edited</param>
+    /// <param name="ctx">HTTP context</param>
     private void ViewEditProduct(Product p, HttpListenerContext ctx) {
-        SendHtml("Products page", ctx);
+        string htmlBody = 
+        $@"<form action=""{prefix}products/edit/{p.Id}"" method=""POST"">
+            <div>
+              <label for=""name"">Product Name ({p.Barcode}): </label>
+              <input name=""name"" id=""name"" value=""{p.Name}"" />
+            </div>
+            <div>
+              <label for=""expiry"">Expiry</label>
+              <input name=""expiry"" id=""expiry"" value=""{p.Expiry}"" />
+            </div>
+            <div>
+              <label for=""count"">Count</label>
+              <input name=""count"" id=""count"" value=""{p.Count}"" />
+            </div>
+            <div>
+              <input type=""submit"">Save changes</button>
+            </div>
+        </form>";
         SendHtml(htmlBody, ctx);
     }
 
+    /// <summary>
+    /// Recipe editing page
+    /// </summary>
+    /// <param name="r">Recipe to be edited</param>
+    /// <param name="ctx">HTTP context</param>
     private void ViewEditRecipe(Recipe r, HttpListenerContext ctx) {
 
     }
 
+    /// <summary>
+    /// Send the HTML file to the client
+    /// </summary>
+    /// <param name="content">HTML content to be wrapped in the file</param>
+    /// <param name="ctx">HTTP context</param>
     private void SendHtml(string content, HttpListenerContext ctx) {
         var response = ctx.Response;
         string responseString = $"<HTML><BODY> {content} </BODY></HTML>";

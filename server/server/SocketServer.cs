@@ -5,6 +5,9 @@ using System.Net.Sockets;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 
+/// <summary>
+/// Socket service for communication with the device
+/// </summary>
 class SocketServer : IDisposable {
     IDataController productControl;
     private Socket socket;
@@ -19,6 +22,10 @@ class SocketServer : IDisposable {
         socket.Bind(ip);
     }
 
+    /// <summary>
+    /// Start the service
+    /// </summary>
+    /// <exception cref="Exception">Unexpected error</exception>
     public async void Start() {
         socket.Listen();
         while (true) {
@@ -30,6 +37,10 @@ class SocketServer : IDisposable {
         throw new Exception();
     }
 
+    /// <summary>
+    /// Send the message to the device
+    /// </summary>
+    /// <param name="data"></param>
     public async void SendMessage(object? data) {
         if (data is null)
             data = "";
@@ -47,6 +58,10 @@ class SocketServer : IDisposable {
         socket.Dispose();
     }
 
+    /// <summary>
+    /// Device connection handler
+    /// </summary>
+    /// <param name="client"></param>
     private async void ConnectionHandle(Socket client) {
         clients.AddOrUpdate(client, "", (key, oldValue) => "");
         Console.WriteLine($"{client.RemoteEndPoint} connected");
@@ -65,6 +80,11 @@ class SocketServer : IDisposable {
         clients.Remove(client, out _);
     }
 
+    /// <summary>
+    /// Process the device message. Works on text based protocol
+    /// </summary>
+    /// <param name="msg"></param>
+    /// <param name="client"></param>
     private void ProcessMessage(string msg, Socket client) 
     {
         var msgParts = msg.Split(' ');

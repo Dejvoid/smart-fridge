@@ -1,11 +1,42 @@
+/// <summary>
+/// Interface for DB communication.
+/// </summary>
 interface IDataController {
+    /// <summary>
+    /// Adds the product with the given barcode identifier.
+    /// If the product already is in the DB, increments the number of items.
+    /// </summary>
+    /// <param name="identifier"> Barcode of the item </param>
+    /// <returns> Number of products of this identifier </returns>
     public int AddProduct(string identifier);
+    /// <summary>
+    /// Removes the product with the given barcode identifier.
+    /// Doesn't remove the information about the product, just decrements the count.
+    /// </summary>
+    /// <param name="identifier">Barcode of the product</param>
+    /// <returns> Number of products of this identifier </returns>
     public int RemoveProduct(string identifier);
+    /// <summary>
+    /// Lists all products
+    /// </summary>
+    /// <returns> List of all products </returns>
     public List<Product> ListProducts();
+    /// <summary>
+    /// Lists all recipes
+    /// </summary>
+    /// <returns> List of all recipes </returns>
     public List<Recipe> ListRecipes();
+    /// <summary>
+    /// Gets product with given ID (primary key).
+    /// </summary>
+    /// <param name="id"> primary key of the product </param>
+    /// <returns> Product if in DB, else null </returns>
     public Product? GetProduct(int id);
 }
 
+/// <summary>
+/// Implementation of IDataController for SQL DB with EntityFramework
+/// </summary>
 class DataController : IDataController
 {
     private FridgeContext dbContext;
