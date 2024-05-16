@@ -8,3 +8,7 @@ The architecture of the server consists of 3 main parts. HTTP Server, Socket Ser
 The server has 3 main parts:
 - Products
 - Recipes
+
+## Usage
+The server listens on all IP addresses and provides HTTP access to web pages via port 80. 
+The socket for device is listening on port 2666.
