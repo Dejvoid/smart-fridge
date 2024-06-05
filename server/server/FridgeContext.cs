@@ -18,6 +18,8 @@ class FridgeContext : DbContext {
     /// Table of recipes
     /// </summary>
     public DbSet<Recipe> Recipes { get; set; }
+
+    public DbSet<Notification> Notifications { get; set; }
     
     /// <summary>
     /// Path to the DB file

@@ -34,7 +34,6 @@ class Product {
         Expiry = expiry;
     }
 }
-
 class Recipe {
     public int Id { get; set; }
     public string Name { get; set; }
@@ -49,4 +48,11 @@ class Recipe {
     /// How long will the recipe take
     /// </summary>
     public TimeSpan Duration { get; set; }
+}
+class Notification {
+    public int Id { get; set; }
+    public string Text { get; set; }
+    public NotifPriority Priority { get; set; }
+    public NotifPeriod Repetition { get; set; }
+    public DateTime DateTime { get; set; }
 }

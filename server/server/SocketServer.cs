@@ -31,21 +31,27 @@ class SocketServer : IDisposable {
         while (true) {
             var client = await socket.AcceptAsync(cancel.Token);
             //var client = socket.Accept();
+            //NetworkStream ns = new(client);
             Task t = new Task(() => {ConnectionHandle(client);});
             t.Start();
         }
         throw new Exception();
     }
 
+    private int PriorityNum(NotifPriority p) {
+        return ((int)p);
+    }
+
     /// <summary>
     /// Send the message to the device
     /// </summary>
-    /// <param name="data"></param>
-    public async void SendMessage(object? data) {
-        if (data is null)
-            data = "";
+    /// <param name="data">ASCII string to be sent</param>
+    public async void SendMessage(string? text, NotifPriority priority) {
+        if (text is null)
+            text = "";
+        text = $"{PriorityNum(priority)}: " + text;
         await Parallel.ForEachAsync(clients, async (client, name) => {
-            var msg = Encoding.ASCII.GetBytes((string)data);
+            var msg = Encoding.ASCII.GetBytes(text);
             // try {
             await client.Key.SendAsync(msg, cancel.Token);
             //} catch user disconnected
@@ -91,16 +97,16 @@ class SocketServer : IDisposable {
         if (msgParts.Length > 1) {
             switch (msgParts[0]) {
             case "add":
-                SendMessage(productControl.AddProduct(msgParts[1]).ToString());
+                SendMessage(productControl.AddProduct(msgParts[1]).ToString(), NotifPriority.NONE);
             break;
             case "rm": 
-                SendMessage(productControl.RemoveProduct(msgParts[1]).ToString());
+                SendMessage(productControl.RemoveProduct(msgParts[1]).ToString(), NotifPriority.NONE);
             break;
             case "temp":
                 float temp;
                 if (float.TryParse(msgParts[1], out temp)) {
                     if (temp > 10.0) {
-                        SendMessage("3: Temperature too high!");
+                        SendMessage("Temperature too high!", NotifPriority.HIGH);
                     }
                 }
             break;
