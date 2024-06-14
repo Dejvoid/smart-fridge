@@ -1,0 +1,111 @@
+@page "/Notifications/edit"
+@inject Server.Data.ApplicationDbContext DB
+@using Server.Data
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h4>Notification</h4>
+<hr />
+@if (Notification is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Notification" OnValidSubmit="UpdateNotification" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="Notification.Id" value="@Notification.Id" />
+                <div class="mb-3">
+                    <label for="text" class="form-label">Text:</label>
+                    <InputText id="text" @bind-Value="Notification.Text" class="form-control" />
+                    <ValidationMessage For="() => Notification.Text" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="priority" class="form-label">Priority:</label>
+                    <InputSelect id="priority" @bind-Value="Notification.Priority" class="form-control" >
+                        @foreach (var prior in Enum.GetValues(typeof(NotifPriority)))
+                        {
+                            <option value="@prior">@prior</option>
+                        } 
+                    </InputSelect>
+                    <ValidationMessage For="() => Notification.Priority" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="repetition" class="form-label">Repetition:</label>
+                    <InputSelect id="repetition" @bind-Value="Notification.Repetition" class="form-control" >
+                        @foreach (var period in Enum.GetValues(typeof(NotifPeriod)))
+                        {
+                            <option value="@period">@period</option>
+                        } 
+                    </InputSelect> 
+                    <ValidationMessage For="() => Notification.Repetition" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="datetime" class="form-label">DateTime:</label>
+                    <InputDate Type="InputDateType.DateTimeLocal" id="datetime" @bind-Value="Notification.DateTime" class="form-control" />
+                    <ValidationMessage For="() => Notification.DateTime" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/notifications">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public Notification? Notification { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Notification ??= await DB.Notifications.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Notification is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see https://aka.ms/RazorPagesCRUD.
+    public async Task UpdateNotification()
+    {
+        DB.Attach(Notification!).State = EntityState.Modified;
+
+        try
+        {
+            await DB.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!NotificationExists(Notification!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/notifications");
+    }
+
+    bool NotificationExists(int id)
+    {
+        return DB.Notifications.Any(e => e.Id == id);
+    }
+}

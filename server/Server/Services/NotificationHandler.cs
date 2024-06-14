@@ -1,11 +1,4 @@
-
-enum NotifPeriod {
-    NONE, DAILY, WEEKLY, MONTHLY
-}
-
-enum NotifPriority {
-    NONE = 0, LOW = 1, MEDIUM = 2, HIGH = 3
-}
+using Server.Data;
 
 interface INotifier {
     public void NotifyOn(string text, DateTime dateTime, NotifPriority priority = NotifPriority.NONE, NotifPeriod repetition = NotifPeriod.NONE);
@@ -13,13 +6,13 @@ interface INotifier {
 
 class NotificationHandler : INotifier, IDisposable {
     IDataController db;
-    SocketServer socket;
-    HttpServer http;
+    //SocketServer socket;
+    //HttpServer http;
     CancellationTokenSource cancel;
-    public NotificationHandler(IDataController db, SocketServer socketServer, HttpServer httpServer) {
+    public NotificationHandler(IDataController db/*, SocketServer socketServer*//*, HttpServer httpServer*/) {
         this.db = db;
-        socket = socketServer;
-        http = httpServer;
+        //socket = socketServer;
+        //http = httpServer;
         cancel = new CancellationTokenSource();
     }
 
@@ -43,7 +36,8 @@ class NotificationHandler : INotifier, IDisposable {
     public void NotifyOn(string text, DateTime dateTime, NotifPriority priority = NotifPriority.NONE, NotifPeriod repetition = NotifPeriod.NONE) {
         TimeSpan delay = dateTime - DateTime.Now;
         var notif = new Notification(){Text = text, DateTime = dateTime, Priority = priority, Repetition = repetition};
-        db.AddNotification(notif);
+        // We assume that someone did the persisting for us
+        //db.AddNotification(notif);
         if (delay.Milliseconds > 0) {
             Task.Delay(delay,cancel.Token).ContinueWith(_ => {
                 TriggerNotification(notif);
@@ -64,7 +58,9 @@ class NotificationHandler : INotifier, IDisposable {
     }
 
     private void TriggerNotification(Notification notif) {
-        socket.SendMessage(notif.Text, notif.Priority);
+        //socket.SendMessage(notif.Text, notif.Priority);
+        //MqttHandler.SendNotif()
+        // We need to remove the notification after it is expired
         db.RemoveNotification(notif);
         switch (notif.Repetition) {
             case NotifPeriod.DAILY:

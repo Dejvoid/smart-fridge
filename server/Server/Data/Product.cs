@@ -1,9 +1,11 @@
 
-class Allergen {
+namespace Server.Data;
+
+public class Allergen {
     public int Id { get; set; }
     public string Name { get; set; }
 }
-class Product {
+public class Product {
     public int Id { get; set; }
     
     /// <summary>
@@ -34,7 +36,7 @@ class Product {
         Expiry = expiry;
     }
 }
-class Recipe {
+public class Recipe {
     public int Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
@@ -45,11 +47,20 @@ class Recipe {
     public List<Product> Ingredients { get; set; } = new();
 
     /// <summary>
-    /// How long will the recipe take
+    /// How long will the recipe take in minutes
     /// </summary>
-    public TimeSpan Duration { get; set; }
+    public int Duration { get; set; }
 }
-class Notification {
+
+public enum NotifPeriod {
+    NONE, DAILY, WEEKLY, MONTHLY
+}
+
+public enum NotifPriority {
+    NONE = 0, LOW = 1, MEDIUM = 2, HIGH = 3
+}
+
+public class Notification {
     public int Id { get; set; }
     public string Text { get; set; }
     public NotifPriority Priority { get; set; }

@@ -1,0 +1,45 @@
+@page "/recipes"
+@inject Server.Data.ApplicationDbContext DB
+@using Server.Data
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="recipes/create">Create New</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Duration</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var recipe in DB.Recipes)
+        {
+            <tr>
+                <td>@recipe.Name</td>
+                <td>@recipe.Description</td>
+                <td>@recipe.Duration</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!--
+<QuickGrid Class="table" Items="DB.Recipes">
+    <PropertyColumn Property="recipe => recipe.Name" />
+    <PropertyColumn Property="recipe => recipe.Description" />
+    <PropertyColumn Property="recipe => recipe.Duration" />
+
+    <TemplateColumn Context="recipe">
+        <a href="@($"recipes/edit?id={recipe.Id}")">Edit</a> |
+        <a href="@($"recipes/details?id={recipe.Id}")">Details</a> |
+        <a href="@($"recipes/delete?id={recipe.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+-->

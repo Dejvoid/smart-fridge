@@ -1,0 +1,96 @@
+@page "/Recipes/edit"
+@inject Server.Data.ApplicationDbContext DB
+@using Server.Data
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h4>Recipe</h4>
+<hr />
+@if (Recipe is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Recipe" OnValidSubmit="UpdateRecipe" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="Recipe.Id" value="@Recipe.Id" />
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name:</label>
+                    <InputText id="name" @bind-Value="Recipe.Name" class="form-control" />
+                    <ValidationMessage For="() => Recipe.Name" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description:</label>
+                    <InputText id="description" @bind-Value="Recipe.Description" class="form-control" />
+                    <ValidationMessage For="() => Recipe.Description" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="duration" class="form-label">Duration:</label>
+                    <InputNumber id="duration" @bind-Value="Recipe.Duration" class="form-control" />
+                    <ValidationMessage For="() => Recipe.Duration" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/recipes">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public Recipe? Recipe { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Recipe ??= await DB.Recipes.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Recipe is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see https://aka.ms/RazorPagesCRUD.
+    public async Task UpdateRecipe()
+    {
+        DB.Attach(Recipe!).State = EntityState.Modified;
+
+        try
+        {
+            await DB.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!RecipeExists(Recipe!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/recipes");
+    }
+
+    bool RecipeExists(int id)
+    {
+        return DB.Recipes.Any(e => e.Id == id);
+    }
+}

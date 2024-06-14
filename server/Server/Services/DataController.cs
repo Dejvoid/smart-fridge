@@ -1,3 +1,6 @@
+using Server.Data;
+
+
 /// <summary>
 /// Interface for DB communication.
 /// </summary>
@@ -45,8 +48,8 @@ interface IDataController {
 /// </summary>
 class DataController : IDataController
 {
-    private FridgeContext dbContext;
-    public DataController(FridgeContext db)
+    private ApplicationDbContext dbContext;
+    public DataController(ApplicationDbContext db)
     {
         dbContext = db;
     }
