@@ -4,14 +4,15 @@
  */
 #include "commander.hpp"
 
+#include <esp_log.h>
 #include <freertos/task.h>
 
 using namespace ConsoleCommander;
 
-Commander::Commander(LcdDriver::LcdBase* lcd, InetComm::Connection* inet, CameraDriver::Camera* cam) : lcd_(lcd), inet_(inet), cam_(cam) {
+Commander::Commander(LcdDriver::LcdBase* lcd, MqttComm* mqtt, CameraDriver::Camera* cam) : lcd_(lcd), mqtt_(mqtt), cam_(cam) {
     notif_q = xQueueCreate(max_notif_cnt, sizeof(char*));
     // Attach our queue to the connection handler to get notifications
-    inet_->notif_q = &notif_q;
+    mqtt_->notif_q = &notif_q;
 }
 
 void Commander::notify(const char* notif) {
@@ -62,10 +63,10 @@ void Commander::loop() {
             // Scan code
             if (cam_->scan_code(&scan)) {
                 ESP_LOGI("Camera scan", "Decoded %s symbol of lenght %d: \"%s\"", scan.type_name, (int)scan.datalen, scan.data);
-                msg_ += " ";
-                msg_ += scan.data;
+                msg_.data = scan.data;
                 // Send scanned code to the server
-                inet_->send_msg(msg_);
+                //inet_->send_msg(msg_);
+                mqtt_->publish(msg_);
                 scan_on = false;
             }
         }
@@ -96,19 +97,28 @@ void Commander::therm_update(float temp, float hum) {
 
 void Commander::handle_cmd(const std::string& cmd) {
     if (cmd == "send") {
-        inet_->send_msg("Temp: "+std::to_string(temp_)+"; Hum: "+std::to_string(hum_)+"");
+        //inet_->send_msg("Temp: "+std::to_string(temp_)+"; Hum: "+std::to_string(hum_)+"");
+        MqttMessage temp_msg; // temperature message
+        temp_msg.topic = THERM_TOPIC;
+        temp_msg.data = std::to_string(temp_);
+        mqtt_->publish(temp_msg);
+
+        MqttMessage hum_msg;
+        hum_msg.topic = HUM_TOPIC;
+        hum_msg.data = std::to_string(hum_);
+        mqtt_->publish(hum_msg);
     }
     else if (cmd == "add product") {
         scan_on = true;
-        msg_ = "add";
+        msg_.topic = PRODUCT_ADD;
     }
     else if (cmd == "rm product") {
         scan_on = true;
-        msg_ = "rm";
+        msg_.topic = PRODUCT_RM;
     }
     else if (cmd == "start scan") {
         scan_on = true;
-        msg_ = "scanned";
+        //msg_ = "scanned";
     }
     else if (cmd == "stop scan") {
         scan_on = false;

@@ -1,4 +1,11 @@
 /**
+ * @mainpage Smart Fridge Documentation
+ *
+ * This is documentation for Smart Fridge Project
+ */
+
+
+/**
  * main.cpp 
  * 
  * This file contains main function of the whole firmware of the board.
@@ -13,6 +20,7 @@
 #include <driver/gpio.h>
 #include <esp_http_client.h>
 #include <nvs_flash.h>
+#include "mqtt_comm.hpp"
 
 /**
  * Lcd constants definitions
@@ -21,7 +29,7 @@ constexpr spi_host_device_t LCD_SPI = HSPI_HOST;
 constexpr int LCD_MOSI              = GPIO_NUM_13;
 constexpr int LCD_MISO              = -1;
 constexpr int LCD_SCK               = GPIO_NUM_14;
-constexpr int LCD_CS                = -1;
+constexpr int LCD_CS                = GPIO_NUM_15;
 constexpr gpio_num_t LCD_DC         = GPIO_NUM_2;
 constexpr gpio_num_t LCD_RST        = GPIO_NUM_12;
 constexpr uint16_t LCD_W            = 480;
@@ -30,8 +38,8 @@ constexpr uint16_t LCD_H            = 320;
 /**
  * Connection constants
 */
-constexpr const char* srv_ip = "192.168.1.104";
-constexpr uint16_t port = 2666;
+constexpr std::string_view mqtt_uri = "";
+//constexpr uint16_t port = 2666;
 
 extern "C" void app_main(void) {   
     esp_err_t ret = nvs_flash_init();
@@ -44,8 +52,11 @@ extern "C" void app_main(void) {
     WifiDriver::Wifi wifi;
     wifi.init();
 
-    InetComm::Connection conn{srv_ip, port};
-    conn.open();
+    //InetComm::Connection conn{srv_ip, port};
+    //conn.open();
+
+    MqttComm mqtt{mqtt_uri.data()};
+    mqtt.connect();
 
     constexpr LcdDriver::LcdPins lcd_pins{LCD_MOSI, LCD_MISO, LCD_SCK, LCD_CS, LCD_RST, LCD_DC};
     LcdDriver::Lcd<LCD_SPI, lcd_pins, LCD_W, LCD_H> lcd;
@@ -61,7 +72,7 @@ extern "C" void app_main(void) {
     //I2cTempDriver::Temperature therm;
     //therm.init();
 
-    ConsoleCommander::Commander cmd{&lcd, &conn, &cam};
+    ConsoleCommander::Commander cmd{&lcd, &mqtt, &cam};
     lcd.draw_line(0, LCD_H - LcdDriver::font_size - 5, LCD_W, LCD_H - LcdDriver::font_size - 5, 0xff, 0xff, 0xff);
 
     while (true) {
