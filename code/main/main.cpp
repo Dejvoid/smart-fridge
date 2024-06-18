@@ -38,7 +38,7 @@ constexpr uint16_t LCD_H            = 320;
 /**
  * Connection constants
 */
-constexpr std::string_view mqtt_uri = "";
+constexpr std::string_view mqtt_uri = "mqtt://192.168.1.104";
 //constexpr uint16_t port = 2666;
 
 extern "C" void app_main(void) {   
@@ -55,9 +55,6 @@ extern "C" void app_main(void) {
     //InetComm::Connection conn{srv_ip, port};
     //conn.open();
 
-    MqttComm mqtt{mqtt_uri.data()};
-    mqtt.connect();
-
     constexpr LcdDriver::LcdPins lcd_pins{LCD_MOSI, LCD_MISO, LCD_SCK, LCD_CS, LCD_RST, LCD_DC};
     LcdDriver::Lcd<LCD_SPI, lcd_pins, LCD_W, LCD_H> lcd;
     lcd.init();
@@ -72,7 +69,9 @@ extern "C" void app_main(void) {
     //I2cTempDriver::Temperature therm;
     //therm.init();
 
+    MqttComm mqtt{mqtt_uri.data()};
     ConsoleCommander::Commander cmd{&lcd, &mqtt, &cam};
+    mqtt.connect(); // we have to connect after the queue for receiving messages is initialized in cmd
     lcd.draw_line(0, LCD_H - LcdDriver::font_size - 5, LCD_W, LCD_H - LcdDriver::font_size - 5, 0xff, 0xff, 0xff);
 
     while (true) {

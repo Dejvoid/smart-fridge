@@ -14,6 +14,7 @@
 #include <string>
 
 class MqttComm;
+struct Notification;
 
 /*namespace InetComm {
     class Connection;
@@ -22,8 +23,6 @@ class MqttComm;
 namespace ConsoleCommander {
 
 constexpr int max_notif_cnt = 10;
-// Maximal length of a signle notification.
-constexpr int max_notif_len = 32;
 
 /// @brief Class responsible for input/output handling and interconnection individual components. Provides access to components over the commands and takes care of drawing notifications
 class Commander {
@@ -43,8 +42,8 @@ class Commander {
     /// @brief Read input from console
     void handle_input();
     /// @brief Process notification. Show it on display.
-    /// @param notification - Notification text
-    void notify(const char* notification);
+    /// @param notification - Notification text and priority
+    void notify(const Notification* notif);
 public:
     /// @brief Constructor taking in components of the system
     /// @param lcd - Pointer to LCD component 

@@ -10,14 +10,15 @@
 using namespace ConsoleCommander;
 
 Commander::Commander(LcdDriver::LcdBase* lcd, MqttComm* mqtt, CameraDriver::Camera* cam) : lcd_(lcd), mqtt_(mqtt), cam_(cam) {
-    notif_q = xQueueCreate(max_notif_cnt, sizeof(char*));
+    notif_q = xQueueCreate(max_notif_cnt, sizeof(Notification*));
     // Attach our queue to the connection handler to get notifications
     mqtt_->notif_q = &notif_q;
 }
 
-void Commander::notify(const char* notif) {
+void Commander::notify(const Notification* notif) {
+    printf("notifying %s\n", notif->data);
     uint8_t color[3] = {0x00, 0x00, 0x00};
-    switch (notif[0]) {
+    switch (notif->priority) {
         case '1': // low priority = GREEN
             color[1] = 0xff;
             break;
@@ -35,13 +36,14 @@ void Commander::notify(const char* notif) {
             break;
     }
     lcd_->draw_rect(0, lcd_->get_h() - LcdDriver::font_size, max_notif_len * LcdDriver::font_size, LcdDriver::font_size, 0x00,0x00,0x00);
-    lcd_->draw_text(notif, 0, lcd_->get_h() - LcdDriver::font_size, color[0], color[1], color[2]);
+    lcd_->draw_text(notif->data, 0, lcd_->get_h() - LcdDriver::font_size, color[0], color[1], color[2]);
 }
 
 void Commander::loop() {
-    char* notification;
+    Notification* notification;
     // Check for new notifications and if there are any, notify
     if (notif_q != NULL && xQueueReceive(notif_q, &notification, 0) == pdTRUE) {
+        printf("SOME MESSAGES ARE HERE\n");
         notify(notification);
     }
 
@@ -61,9 +63,10 @@ void Commander::loop() {
             //lcd.draw_565buff(fb->buf, 0, 0, fb->width, fb->height);
             esp_code_scanner_symbol_t scan;
             // Scan code
-            if (cam_->scan_code(&scan)) {
-                ESP_LOGI("Camera scan", "Decoded %s symbol of lenght %d: \"%s\"", scan.type_name, (int)scan.datalen, scan.data);
-                msg_.data = scan.data;
+            if (cam_->scan_code(msg_.data)) {
+                //ESP_LOGI("Camera scan", "Decoded %s symbol of lenght %d: \"%s\"", scan.type_name, (int)scan.datalen, scan.data);
+                ESP_LOGI("Camera scan", "Decoded: %s\n", msg_.data.c_str());
+                //msg_.data = std::string{scan};
                 // Send scanned code to the server
                 //inet_->send_msg(msg_);
                 mqtt_->publish(msg_);

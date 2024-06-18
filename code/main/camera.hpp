@@ -11,6 +11,7 @@
 
 #include <esp_camera.h>
 #include <esp_code_scanner.h>
+#include <string>
 
 namespace CameraDriver {
 
@@ -56,7 +57,7 @@ public:
     /// @brief Try finding code in camera buffer
     /// @param res - Found code (if any)
     /// @return - returns true if code was found
-    bool scan_code(esp_code_scanner_symbol_t* res);
+    bool scan_code(std::string& res);
     /// @brief Provides access to the camera buffer. Frame should be returned after use: See ret_frame
     /// @return Camera buffer
     const camera_fb_t* get_frame();
