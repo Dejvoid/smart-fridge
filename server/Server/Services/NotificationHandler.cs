@@ -8,9 +8,11 @@ class NotificationHandler : INotifier, IDisposable {
     IDataController db;
     //SocketServer socket;
     //HttpServer http;
+    MqttHandler mqtt;
     CancellationTokenSource cancel;
-    public NotificationHandler(IDataController db/*, SocketServer socketServer*//*, HttpServer httpServer*/) {
+    public NotificationHandler(IDataController db, MqttHandler mqtt/*, SocketServer socketServer*//*, HttpServer httpServer*/) {
         this.db = db;
+        this.mqtt = mqtt;
         //socket = socketServer;
         //http = httpServer;
         cancel = new CancellationTokenSource();
@@ -59,18 +61,24 @@ class NotificationHandler : INotifier, IDisposable {
 
     private void TriggerNotification(Notification notif) {
         //socket.SendMessage(notif.Text, notif.Priority);
-        //MqttHandler.SendNotif()
+        mqtt.SendNotif(notif);
         // We need to remove the notification after it is expired
         db.RemoveNotification(notif);
         switch (notif.Repetition) {
             case NotifPeriod.DAILY:
-                NotifyOn(notif.Text, DateTime.Now.AddDays(1), notif.Priority, notif.Repetition);
+                notif.DateTime = notif.DateTime.AddDays(1);
+                db.AddNotification(notif);
+                NotifyOn(notif);
             break;
             case NotifPeriod.WEEKLY:
-                NotifyOn(notif.Text, DateTime.Now.AddDays(7), notif.Priority, notif.Repetition);
+                notif.DateTime = notif.DateTime.AddDays(7);
+                db.AddNotification(notif);
+                NotifyOn(notif);
             break;
             case NotifPeriod.MONTHLY:
-                NotifyOn(notif.Text, DateTime.Now.AddMonths(1), notif.Priority, notif.Repetition);
+                notif.DateTime = notif.DateTime.AddMonths(1);
+                db.AddNotification(notif);
+                NotifyOn(notif);
             break;
         }
     }

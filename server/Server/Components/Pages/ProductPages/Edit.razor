@@ -40,7 +40,7 @@ else
                 <div class="mb-3">
                     <label for="expiry" class="form-label">Expiry:</label>
                     <InputDate id="expiry" @bind-Value="Product.Expiry" class="form-control" />
-                    <ValidationMessage For="() => Product.Expiry" class="text-danger" />
+                    <ValidationMessage For="() => Product.Expiry.Date" class="text-danger" />
                 </div>
                 <button type="submit" class="btn btn-primary">Save</button>
             </EditForm>

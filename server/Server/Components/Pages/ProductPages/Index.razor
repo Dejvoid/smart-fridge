@@ -17,6 +17,11 @@
                 <th>Name</th>
                 <th>Count</th>
                 <th>Expiry</th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -26,22 +31,13 @@
                     <td>@product.Barcode</td>
                     <td>@product.Name</td>
                     <td>@product.Count</td>
-                    <td>@product.Expiry</td>
+                    <td>@product.Expiry.Date</td>
+                    <td>+</td>
+                    <td>-</td>
+                    <td><a href="@($"products/edit?id={product.Id}")">Edit</a></td>
+                    <td><a href="@($"products/details?id={product.Id}")">Details</a></td>
+                    <td><a href="@($"products/delete?id={product.Id}")">Delete</a></td>
                 </tr>
             }
         </tbody>
     </table>
-
-<!-- <QuickGrid Class="table" Items="DB.Products">
-    <PropertyColumn Property="product => product.Barcode" />
-    <PropertyColumn Property="product => product.Name" />
-    <PropertyColumn Property="product => product.Count" />
-    <PropertyColumn Property="product => product.Expiry" />
-
-    <TemplateColumn Context="product">
-        <a href="@($"products/edit?id={product.Id}")">Edit</a> |
-        <a href="@($"products/details?id={product.Id}")">Details</a> |
-        <a href="@($"products/delete?id={product.Id}")">Delete</a>
-    </TemplateColumn>
-</QuickGrid>
--->

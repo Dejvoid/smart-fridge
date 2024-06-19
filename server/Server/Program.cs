@@ -24,9 +24,29 @@ builder.Services.AddAuthentication(options =>
     .AddIdentityCookies();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(connectionString));
+//builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//    options.UseSqlite(connectionString));
 
+// We need DbContext for dbControl class
+DbContextOptions<ApplicationDbContext> dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseSqlite(connectionString).Options;
+ApplicationDbContext db = new(dbOptions);
+
+DataController dbControl = new DataController(db);
+
+DashboardService dashboard = new();
+
+// Add MQTT service
+MqttHandler mqtt = new(dashboard, dbControl);
+mqtt.Start();
+
+// Add notification service
+NotificationHandler notif = new(dbControl, mqtt);
+
+builder.Services.AddSingleton<MqttHandler>(mqtt);
+builder.Services.AddSingleton<NotificationHandler>(notif);
+builder.Services.AddSingleton<DashboardService>(dashboard);
+
+builder.Services.AddSingleton<ApplicationDbContext>(db);
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -36,11 +56,6 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
-
-// Add MQTT service
-MqttHandler mqtt = new();
-mqtt.Start();
-builder.Services.AddSingleton<MqttHandler>(mqtt);
 
 var app = builder.Build();
 
@@ -66,5 +81,7 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+
+app.MapBlazorHub("base/path");
 
 app.Run();

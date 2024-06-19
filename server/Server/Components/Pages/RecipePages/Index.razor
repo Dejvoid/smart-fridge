@@ -16,6 +16,9 @@
             <th>Name</th>
             <th>Description</th>
             <th>Duration</th>
+            <th></th>
+            <th></th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -25,6 +28,9 @@
                 <td>@recipe.Name</td>
                 <td>@recipe.Description</td>
                 <td>@recipe.Duration</td>
+                <td><a href="@($"recipes/edit?id={recipe.Id}")">Edit</a></td>
+                <td><a href="@($"recipes/details?id={recipe.Id}")">Details</a></td>
+                <td><a href="@($"recipes/delete?id={recipe.Id}")">Delete</a></td>
             </tr>
         }
     </tbody>
