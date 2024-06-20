@@ -4,7 +4,9 @@
 MqttComm::MqttComm(const std::string& uri) {
     esp_mqtt_client_config_t mqtt_cfg = {};
     mqtt_cfg.broker.address.uri = uri.c_str();
-    mqtt_cfg.network.timeout_ms = 1000;
+    mqtt_cfg.broker.verification.certificate = (const char *)ca_cert_pem_start;
+    mqtt_cfg.credentials.authentication.certificate = (const char *)client_cert_pem_start;
+    mqtt_cfg.credentials.authentication.key = (const char *)client_key_pem_start;
 
     client = esp_mqtt_client_init(&mqtt_cfg);
     esp_mqtt_client_register_event(client, esp_mqtt_event_id_t::MQTT_EVENT_ANY, mqtt_event_handler, this);

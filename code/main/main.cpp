@@ -38,7 +38,7 @@ constexpr uint16_t LCD_H            = 320;
 /**
  * Connection constants
 */
-constexpr std::string_view mqtt_uri = "mqtt://192.168.1.104";
+constexpr std::string_view mqtt_uri = "mqtts://192.168.1.104:8883";
 //constexpr uint16_t port = 2666;
 
 extern "C" void app_main(void) {   
