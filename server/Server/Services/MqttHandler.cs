@@ -27,6 +27,7 @@ class MqttHandler : IDisposable
     IDataController dataControl;
     INotifier notifications = null;
     X509Certificate2 caCert;
+    X509Certificate2 cert;
     //HashSet<> verified;
 
     public MqttHandler(IDashBoard dash, IDataController data) {
@@ -34,29 +35,35 @@ class MqttHandler : IDisposable
         dataControl = data;
     }
 
-    public async void Start(string caCertFile, string serverCertFile) {
+    public async void Start(string? caCertFile, string? serverCertFile) {
         var mqttFactory = new MqttFactory();
-        caCert = new X509Certificate2(caCertFile);
-        var cert = new X509Certificate2(serverCertFile);
+        
+        
         //var client_crt = new X509Certificate2("/home/dejvoid/temp/device.crt");
         var mqttServerOptions = new MqttServerOptionsBuilder()
             .WithDefaultEndpoint()
-            .WithDefaultEndpointPort(1883)
-            .WithEncryptedEndpoint()
-            .WithEncryptedEndpointPort(8883)
-            .WithEncryptionCertificate(cert)
-            .WithClientCertificate(DeviceValidation)
+            .WithDefaultEndpointPort(1883);
+            if (caCertFile != null && serverCertFile != null) {
+                caCert = new X509Certificate2(caCertFile);
+                cert = new X509Certificate2(serverCertFile);
+                mqttServerOptions
+                    .WithEncryptedEndpoint()
+                    .WithEncryptedEndpointPort(8883)
+                    .WithEncryptionCertificate(cert)
+                    .WithClientCertificate(DeviceValidation);
+            }
             //.WithEncryptionSslProtocol(System.Security.Authentication.SslProtocols.Tls13) - buggy with ESP32
-            .Build();
-        var mqttClientOptions = new MqttClientOptionsBuilder().WithClientId("server").WithConnectionUri("mqtt://localhost:1883").Build();
-        srv = mqttFactory.CreateMqttServer(mqttServerOptions);
+        var mqttClientOptions = new MqttClientOptionsBuilder()
+            .WithClientId("server")
+            .WithConnectionUri("mqtt://localhost:1883");
+        srv = mqttFactory.CreateMqttServer(mqttServerOptions.Build());
 
 
         client = mqttFactory.CreateMqttClient();
 
         await srv.StartAsync();
         Console.WriteLine("MQTT service started");
-        await client.ConnectAsync(mqttClientOptions);
+        await client.ConnectAsync(mqttClientOptions.Build());
 
         client.ApplicationMessageReceivedAsync += (e => {
             return MessageReceivedCallback(e);
