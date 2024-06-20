@@ -5,6 +5,8 @@ using MQTTnet.Client;
 using Server.Data;
 using System.Net;
 using System.Text;
+using System.Security.Cryptography.X509Certificates;
+using System.Net.Security;
 
 readonly struct MqttTopics {
     public const string NOTIF = "notifications";
@@ -24,20 +26,34 @@ class MqttHandler : IDisposable
     IDashBoard dashboard;
     IDataController dataControl;
     INotifier notifications = null;
+    X509Certificate2 caCert;
+    //HashSet<> verified;
 
     public MqttHandler(IDashBoard dash, IDataController data) {
         dashboard = dash;
         dataControl = data;
     }
 
-    public async void Start() {
+    public async void Start(string caCertFile, string serverCertFile) {
         var mqttFactory = new MqttFactory();
-        var mqttServerOptions = new MqttServerOptionsBuilder().WithDefaultEndpoint().WithDefaultEndpointPort(1883).Build();
+        caCert = new X509Certificate2(caCertFile);
+        var cert = new X509Certificate2(serverCertFile);
+        //var client_crt = new X509Certificate2("/home/dejvoid/temp/device.crt");
+        var mqttServerOptions = new MqttServerOptionsBuilder()
+            .WithDefaultEndpoint()
+            .WithDefaultEndpointPort(1883)
+            .WithEncryptedEndpoint()
+            .WithEncryptedEndpointPort(8883)
+            .WithEncryptionCertificate(cert)
+            .WithClientCertificate(DeviceValidation)
+            //.WithEncryptionSslProtocol(System.Security.Authentication.SslProtocols.Tls13) - buggy with ESP32
+            .Build();
         var mqttClientOptions = new MqttClientOptionsBuilder().WithClientId("server").WithConnectionUri("mqtt://localhost:1883").Build();
-
         srv = mqttFactory.CreateMqttServer(mqttServerOptions);
+
+
         client = mqttFactory.CreateMqttClient();
-        
+
         await srv.StartAsync();
         Console.WriteLine("MQTT service started");
         await client.ConnectAsync(mqttClientOptions);
@@ -47,11 +63,32 @@ class MqttHandler : IDisposable
         });
         await client.SubscribeAsync(new MqttClientSubscribeOptionsBuilder()
             .WithTopicFilter(MqttTopics.NOTIF_ALL)
-            .WithTopicFilter(MqttTopics.PRODUCT_ALL)
+            //.WithTopicFilter(MqttTopics.PRODUCT_ALL)
             .WithTopicFilter(MqttTopics.HUM)
             .WithTopicFilter(MqttTopics.THERM)
             .Build());
-        await client.PublishStringAsync("notifications", "hello");
+        //await client.PublishStringAsync("notifications", "hello");
+    }
+
+    private bool DeviceValidation(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
+    {
+        bool isValid = false;
+        if (certificate is not null && chain is not null) {
+            chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+            chain.ChainPolicy.RevocationFlag = X509RevocationFlag.ExcludeRoot;
+            chain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
+            chain.ChainPolicy.VerificationTime = DateTime.Now;
+            chain.ChainPolicy.UrlRetrievalTimeout = new TimeSpan(0, 0, 0);
+            chain.ChainPolicy.ExtraStore.Add(caCert);
+            isValid = chain.Build(new X509Certificate2(certificate));
+            var valid = chain.ChainElements
+                .Cast<X509ChainElement>()
+                .Any(x => x.Certificate.Thumbprint == caCert.Thumbprint);
+            // now if valid, user has our certificate and we can do something
+        }
+        else 
+            isValid = true;
+        return isValid;
     }
 
     private async Task MessageReceivedCallback(MqttApplicationMessageReceivedEventArgs e)
