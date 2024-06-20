@@ -28,18 +28,16 @@ class MqttHandler : IDisposable
     INotifier notifications = null;
     X509Certificate2 caCert;
     X509Certificate2 cert;
-    //HashSet<> verified;
+    HashSet<string> verifiedClients = new();
 
     public MqttHandler(IDashBoard dash, IDataController data) {
         dashboard = dash;
         dataControl = data;
     }
 
-    public async void Start(string? caCertFile, string? serverCertFile) {
+    public async void Start(string? caCertFile = null, string? serverCertFile = null) {
         var mqttFactory = new MqttFactory();
         
-        
-        //var client_crt = new X509Certificate2("/home/dejvoid/temp/device.crt");
         var mqttServerOptions = new MqttServerOptionsBuilder()
             .WithDefaultEndpoint()
             .WithDefaultEndpointPort(1883);
@@ -53,11 +51,18 @@ class MqttHandler : IDisposable
                     .WithClientCertificate(DeviceValidation);
             }
             //.WithEncryptionSslProtocol(System.Security.Authentication.SslProtocols.Tls13) - buggy with ESP32
+
+        string localClient = "server";
+        // our client is verified. if it wasn't we could still do anything because we have access to the server
+        verifiedClients.Add(localClient);
         var mqttClientOptions = new MqttClientOptionsBuilder()
-            .WithClientId("server")
+            .WithClientId(localClient)
             .WithConnectionUri("mqtt://localhost:1883");
         srv = mqttFactory.CreateMqttServer(mqttServerOptions.Build());
 
+        srv.ValidatingConnectionAsync += ValidateConnectionAsync;
+        srv.InterceptingPublishAsync += VerifyPublish;
+        srv.ClientDisconnectedAsync += RemoveVerified;
 
         client = mqttFactory.CreateMqttClient();
 
@@ -70,15 +75,61 @@ class MqttHandler : IDisposable
         });
         await client.SubscribeAsync(new MqttClientSubscribeOptionsBuilder()
             .WithTopicFilter(MqttTopics.NOTIF_ALL)
-            //.WithTopicFilter(MqttTopics.PRODUCT_ALL)
+            .WithTopicFilter(MqttTopics.PRODUCT_ALL)
             .WithTopicFilter(MqttTopics.HUM)
             .WithTopicFilter(MqttTopics.THERM)
             .Build());
         //await client.PublishStringAsync("notifications", "hello");
     }
 
+    private async Task RemoveVerified(ClientDisconnectedEventArgs args)
+    {
+        var id = args.ClientId;
+        if (verifiedClients.Contains(id)) {
+            verifiedClients.Remove(id);
+        }
+    }
+
+    private Task VerifyPublish(InterceptingPublishEventArgs args)
+    {
+        // only verified users/devices can publish to product/#
+        if (args.ApplicationMessage.Topic.StartsWith(MqttTopics.PRODUCT)) {
+            args.ProcessPublish = verifiedClients.Contains(args.ClientId);
+        }
+        return Task.CompletedTask;
+    }
+
+    private Task ValidateConnectionAsync(ValidatingConnectionEventArgs args)
+    {
+        bool certVerified = false;
+        if (args.ClientCertificate is not null) {
+            var chain = new X509Chain();
+            chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+            chain.ChainPolicy.RevocationFlag = X509RevocationFlag.ExcludeRoot;
+            chain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
+            chain.ChainPolicy.VerificationTime = DateTime.Now;
+            chain.ChainPolicy.UrlRetrievalTimeout = new TimeSpan(0, 0, 0);
+            chain.ChainPolicy.ExtraStore.Add(caCert);
+            var isValid = chain.Build(args.ClientCertificate);
+            certVerified = chain.ChainElements
+                .Cast<X509ChainElement>()
+                .Any(x => x.Certificate.Thumbprint == caCert.Thumbprint);
+            
+        }
+        
+        if (certVerified) {
+            verifiedClients.Add(args.ClientId);
+        }
+        return Task.CompletedTask;
+        //throw new NotImplementedException();
+    }
+
     private bool DeviceValidation(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
     {
+        // In order to be able to add users to verifiedClients, we need this "dummy"
+        // Only with this we can accept all clients but still see their certificates
+        return true;
+        /*
         bool isValid = false;
         if (certificate is not null && chain is not null) {
             chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
@@ -92,10 +143,13 @@ class MqttHandler : IDisposable
                 .Cast<X509ChainElement>()
                 .Any(x => x.Certificate.Thumbprint == caCert.Thumbprint);
             // now if valid, user has our certificate and we can do something
+            if (valid) {
+            }
         }
         else 
             isValid = true;
         return isValid;
+        */
     }
 
     private async Task MessageReceivedCallback(MqttApplicationMessageReceivedEventArgs e)
