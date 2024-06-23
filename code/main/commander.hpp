@@ -28,9 +28,10 @@ constexpr int max_notif_cnt = 10;
 class Commander {
     std::string line_;
     LcdDriver::LcdBase* lcd_;
-    I2cTempDriver::Temperature* therm_;
+    I2cTempDriver::TemperatureBase* therm_;
+    I2cTempDriver::HumidityBase* hum_sensor_;
     MqttComm* mqtt_;
-    CameraDriver::Camera* cam_;
+    CameraDriver::CameraBase* cam_;
     float temp_;
     float hum_;
     bool scan_on = false;
@@ -49,7 +50,7 @@ public:
     /// @param lcd - Pointer to LCD component 
     /// @param mqtt - Pointer to MQTT component
     /// @param cam - Pointer to camera component
-    Commander(LcdDriver::LcdBase* lcd, MqttComm* mqtt, CameraDriver::Camera* cam);
+    Commander(LcdDriver::LcdBase* lcd, MqttComm* mqtt, CameraDriver::CameraBase* cam);
     /// @brief Call this in loop to process user input, gather notifications and draw preview of the camera (if scanning is on)
     void loop();
     /// @brief Updates internal temperature and humidity values and prints them on the display. Calling this in a loop may cause showed data to flicker.

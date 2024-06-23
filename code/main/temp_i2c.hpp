@@ -11,6 +11,20 @@
 
 namespace I2cTempDriver {
 
+class TemperatureBase {
+public:
+    virtual void init() = 0;
+    virtual void loop() = 0;
+    virtual float get_temp() = 0;
+};
+
+class HumidityBase {
+public:
+    virtual void init() = 0;
+    virtual void loop() = 0;
+    virtual float get_hum() = 0;
+};
+
 /**
  * Pins and constants definitions
 */
@@ -33,22 +47,22 @@ constexpr uint8_t meas_cmd[meas_cmd_len] = { 0xAC, 0b00110011, 0 };
 constexpr int rd_len = 6;
 
 /// @brief Takes care of temperature and humidity sensor.
-class Temperature {
+class Temperature : public TemperatureBase, public HumidityBase {
     /// @brief Buffer for data read
     uint8_t rd_buf[rd_len];
     float temp_;
     float hum_;
 public:
     /// @brief Initialize thermometer to start operating
-    void init();
+    void init() override;
     /// @brief Call this in the loop. Starts meaasurement and updates temperature and humidity values
-    void loop();
+    void loop() override;
     /// @brief Get measured temperature
     /// @return Measured temperature in Celsius
-    inline float get_temp();
+    inline float get_temp() override;
     /// @brief Get measured humidity
     /// @return Measured humidity in percents
-    inline float get_hum();
+    inline float get_hum() override;
 };
 
 }

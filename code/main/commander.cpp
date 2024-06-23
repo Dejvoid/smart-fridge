@@ -9,7 +9,7 @@
 
 using namespace ConsoleCommander;
 
-Commander::Commander(LcdDriver::LcdBase* lcd, MqttComm* mqtt, CameraDriver::Camera* cam) : lcd_(lcd), mqtt_(mqtt), cam_(cam) {
+Commander::Commander(LcdDriver::LcdBase* lcd, MqttComm* mqtt, CameraDriver::CameraBase* cam) : lcd_(lcd), mqtt_(mqtt), cam_(cam) {
     notif_q = xQueueCreate(max_notif_cnt, sizeof(Notification*));
     // Attach our queue to the connection handler to get notifications
     mqtt_->notif_q = &notif_q;
@@ -75,6 +75,7 @@ void Commander::loop() {
         }
         cam_->ret_frame();
     }
+    // update temp and humidity
 }
 
 void Commander::therm_update(float temp, float hum) {
