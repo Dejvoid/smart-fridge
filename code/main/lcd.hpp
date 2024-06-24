@@ -74,6 +74,7 @@ struct LcdPins {
 
 /**
  * Interface for the Lcd
+ * @interface Lcd
 */
 class LcdBase {
 public:
@@ -148,7 +149,8 @@ public:
     virtual void draw_565buff(const uint8_t* buff, uint16_t x, uint16_t y, uint16_t w, uint16_t h) = 0;
 };
 
-/// @brief Implementation of LCD driver
+/// @brief Implementation of LCD driver.
+/// This class implements LCD driver for ILI9488 display. Implements the LcdBase interface
 /// @tparam SPI - selected SPI host (VSPI_HOST, HSPI_HOST, ...)
 /// @tparam W - Width of the display
 /// @tparam H - Height of the display

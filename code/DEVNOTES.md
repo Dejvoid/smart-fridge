@@ -47,3 +47,41 @@
     - Turned out to work quite well for debugging of SPI, One-Wire
 
 - https://esp32.com/viewtopic.php?t=28028
+
+## MQTT vs socket
+- socket very simple and quite easy to implement
+- mqtt troublesome but working standard
+    - issues: disconnecting (not finishing 3-way handshake) - maybe issue with security?
+
+
+
+### Certification Authority certificate
+1) Generate key and certificate: `openssl req -x509 -newkey rsa:4096 -keyout ca.key -out ca.crt -nodes -sha256 -days 60`
+    - Fill country, company, and [common name]
+2) (Optional) Add as trusted CA
+
+### Server certificate
+0) Write information for the certificate `openssl req -new -nodes -out server.csr -newkey rsa:4096 -keyout server.key -config san.cnf`
+
+1) Generate key and certificate: 
+    - Fill country, company, and common name
+2) Sign the certificate: `openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 730 -sha256 -extensions req_ext -extfile san.cnf` !!! sign with the cnf file, mbed tls on esp buggy with tls v1.3
+3) Convert certificate: `openssl pkcs12 -export -out server.pfx -inkey server.key -in server.crt`
+
+### Device certificate
+1) Generate key and certificate request: `openssl req -new -nodes -out device.csr -newkey rsa:2048 -keyout device.key`
+2) Sign the certificate: `openssl x509 -req -in device.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out device.crt -days 730 -sha256`
+
+openssl genrsa -out client.key
+openssl req -out client.csr -key client.key -new
+
+Country Name (2 letter code) [XX]:CZ
+Organization Name (eg, company) [Default Company Ltd]:smart-fridge
+Common Name (eg, your name or your server's hostname) []:device
+
+
+openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -nodes -sha256 -days 60
+
+Country Name (2 letter code) [XX]:cz
+Organization Name (eg, company) [Default Company Ltd]:smart-fridge
+Common Name (eg, your name or your server's hostname) []:server

@@ -67,7 +67,7 @@ void Camera::ret_frame() {
     fb = NULL;
 }
 
-bool Camera::scan_code(esp_code_scanner_symbol_t* res) {
+bool Camera::scan_code(std::string& res) {
     bool ret = false;
     if (fb != NULL) {
         
@@ -80,8 +80,10 @@ bool Camera::scan_code(esp_code_scanner_symbol_t* res) {
         ESP_ERROR_CHECK(esp_code_scanner_set_config(esp_scn, config));
         int decoded_num = esp_code_scanner_scan_image(esp_scn, fb->buf);
         if(decoded_num) {
-            *res = esp_code_scanner_result(esp_scn);
-            ESP_LOGI("Camera", "Scanned %s", res->data);
+            // Copy to our known variable
+            auto tmp = esp_code_scanner_result(esp_scn);
+            res = std::string{tmp.data};
+            ESP_LOGI("Camera", "Scanned %s", res.c_str());
             // Throw away old scanner since it bugs
             esp_code_scanner_destroy(esp_scn);
             esp_scn = esp_code_scanner_create();

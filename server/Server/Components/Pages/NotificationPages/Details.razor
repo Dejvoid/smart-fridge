@@ -1,0 +1,51 @@
+@page "/notifications/details"
+@inject Server.Data.ApplicationDbContext DB
+@using Server.Data
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h4>Notification</h4>
+    <hr />
+    @if (notification is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Text</dt>
+            <dd class="col-sm-10">@notification.Text</dd>
+            <dt class="col-sm-2">Priority</dt>
+            <dd class="col-sm-10">@notification.Priority</dd>
+            <dt class="col-sm-2">Repetition</dt>
+            <dd class="col-sm-10">@notification.Repetition</dd>
+            <dt class="col-sm-2">DateTime</dt>
+            <dd class="col-sm-10">@notification.DateTime</dd>
+        </dl>
+        <div>
+            <!--<a href="@($"/notifications/edit?id={notification.Id}")">Edit</a>--> |
+            <a href="@($"/notifications")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    Notification? notification;
+
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        notification = await DB.Notifications.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (notification is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

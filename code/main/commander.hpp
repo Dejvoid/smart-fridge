@@ -7,32 +7,35 @@
 
 #include "lcd.hpp"
 #include "temp_i2c.hpp"
-#include "inet_comm.hpp"
+#include "mqtt_msg.hpp"
+#include "mqtt_comm.hpp"
 #include "camera.hpp"
 
 #include <string>
 
-namespace InetComm {
+class MqttComm;
+struct Notification;
+
+/*namespace InetComm {
     class Connection;
-}
+}*/
 
 namespace ConsoleCommander {
 
 constexpr int max_notif_cnt = 10;
-// Maximal length of a signle notification.
-constexpr int max_notif_len = 32;
 
 /// @brief Class responsible for input/output handling and interconnection individual components. Provides access to components over the commands and takes care of drawing notifications
 class Commander {
     std::string line_;
     LcdDriver::LcdBase* lcd_;
-    I2cTempDriver::Temperature* therm_;
-    InetComm::Connection* inet_;
-    CameraDriver::Camera* cam_;
+    I2cTempDriver::TemperatureBase* therm_;
+    I2cTempDriver::HumidityBase* hum_sensor_;
+    MqttComm* mqtt_;
+    CameraDriver::CameraBase* cam_;
     float temp_;
     float hum_;
     bool scan_on = false;
-    std::string msg_;
+    MqttMessage msg_;
     QueueHandle_t notif_q;
     /// @brief Executes command string
     /// @param cmd - command to execute
@@ -40,14 +43,14 @@ class Commander {
     /// @brief Read input from console
     void handle_input();
     /// @brief Process notification. Show it on display.
-    /// @param notification - Notification text
-    void notify(const char* notification);
+    /// @param notification - Notification text and priority
+    void notify(const Notification* notif);
 public:
     /// @brief Constructor taking in components of the system
     /// @param lcd - Pointer to LCD component 
-    /// @param inet - Pointer to connection component
+    /// @param mqtt - Pointer to MQTT component
     /// @param cam - Pointer to camera component
-    Commander(LcdDriver::LcdBase* lcd, InetComm::Connection* inet, CameraDriver::Camera* cam);
+    Commander(LcdDriver::LcdBase* lcd, MqttComm* mqtt, CameraDriver::CameraBase* cam);
     /// @brief Call this in loop to process user input, gather notifications and draw preview of the camera (if scanning is on)
     void loop();
     /// @brief Updates internal temperature and humidity values and prints them on the display. Calling this in a loop may cause showed data to flicker.

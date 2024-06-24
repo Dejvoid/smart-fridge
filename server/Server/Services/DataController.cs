@@ -1,3 +1,6 @@
+using Server.Data;
+
+
 /// <summary>
 /// Interface for DB communication.
 /// </summary>
@@ -8,30 +11,36 @@ interface IDataController {
     /// </summary>
     /// <param name="identifier"> Barcode of the item </param>
     /// <returns> Number of products of this identifier </returns>
-    public int AddProduct(string identifier);
+    int AddProduct(string identifier);
     /// <summary>
     /// Removes the product with the given barcode identifier.
     /// Doesn't remove the information about the product, just decrements the count.
     /// </summary>
     /// <param name="identifier">Barcode of the product</param>
     /// <returns> Number of products of this identifier </returns>
-    public int RemoveProduct(string identifier);
+    int RemoveProduct(string identifier);
     /// <summary>
     /// Lists all products
     /// </summary>
     /// <returns> List of all products </returns>
-    public List<Product> ListProducts();
+    List<Product> ListProducts();
     /// <summary>
     /// Lists all recipes
     /// </summary>
     /// <returns> List of all recipes </returns>
-    public List<Recipe> ListRecipes();
+    List<Recipe> ListRecipes();
     /// <summary>
     /// Gets product with given ID (primary key).
     /// </summary>
     /// <param name="id"> primary key of the product </param>
     /// <returns> Product if in DB, else null </returns>
-    public Product? GetProduct(int id);
+    Product? GetProduct(int id);
+
+    void AddNotification(Notification notif);
+
+    void RemoveNotification(Notification notif);
+
+    List<Notification> GetNotifications();
 }
 
 /// <summary>
@@ -39,8 +48,8 @@ interface IDataController {
 /// </summary>
 class DataController : IDataController
 {
-    private FridgeContext dbContext;
-    public DataController(FridgeContext db)
+    private ApplicationDbContext dbContext;
+    public DataController(ApplicationDbContext db)
     {
         dbContext = db;
     }
@@ -83,5 +92,19 @@ class DataController : IDataController
     public Product? GetProduct(int id)
     {
         return dbContext.Products.FirstOrDefault(p => p.Id == id);
+    }
+
+    public void AddNotification(Notification notif) {
+        dbContext.Notifications.Add(notif);
+        dbContext.SaveChanges();
+    }
+
+    public void RemoveNotification(Notification notif) {
+        dbContext.Notifications.Remove(notif);
+        dbContext.SaveChanges();
+    }
+
+    public List<Notification> GetNotifications() {
+        return dbContext.Notifications.ToList();
     }
 }

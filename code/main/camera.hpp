@@ -11,6 +11,7 @@
 
 #include <esp_camera.h>
 #include <esp_code_scanner.h>
+#include <string>
 
 namespace CameraDriver {
 
@@ -46,26 +47,35 @@ enum class Setting {
     SHARPNESS,  // Sharpness setting (-2, 2)
 };
 
+class CameraBase {
+public:
+    virtual void init() = 0;
+    virtual bool scan_code(std::string& res) = 0;
+    virtual const camera_fb_t* get_frame() = 0;
+    virtual void ret_frame() = 0;
+    virtual void change_settings(Setting sett, int val) = 0;
+};
+
 /// @brief Class for camera handling. Supports getting the frame buffer and scanning QR and barcodes.
-class Camera {
+class Camera : public CameraBase {
     camera_fb_t *fb = NULL;
     esp_image_scanner_t *esp_scn;
 public:
     /// @brief Initialize the camera for usage
-    void init();
+    void init() override;
     /// @brief Try finding code in camera buffer
     /// @param res - Found code (if any)
     /// @return - returns true if code was found
-    bool scan_code(esp_code_scanner_symbol_t* res);
+    bool scan_code(std::string& res) override;
     /// @brief Provides access to the camera buffer. Frame should be returned after use: See ret_frame
     /// @return Camera buffer
-    const camera_fb_t* get_frame();
+    const camera_fb_t* get_frame() override;
     /// @brief Returns buffer ownership back to the camera
-    void ret_frame();
+    void ret_frame() override;
     /// @brief Provides API for changing some camera settings
     /// @param sett - Setting type
     /// @param value - Setting value
-    void change_settings(Setting sett, int value);
+    void change_settings(Setting sett, int value) override;
     ~Camera();
 };
 

@@ -1,0 +1,54 @@
+@page "/notifications"
+@inject Server.Data.ApplicationDbContext DB
+@using Server.Data
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="notifications/create">Create New</a>
+</p>
+
+<table class="table">
+        <thead>
+            <tr>
+                <th>Text</th>
+                <th>Priority</th>
+                <th>Repetition</th>
+                <th>Scheduled on</th>
+                <!--<th></th>-->
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var notif in DB.Notifications)
+            {
+                <tr>
+                    <td>@notif.Text</td>
+                    <td>@notif.Priority</td>
+                    <td>@notif.Repetition</td>
+                    <td>@notif.DateTime</td>
+                    <!--<td><a href="@($"notifications/edit?id={notif.Id}")">Edit</a></td>-->
+                    <td><a href="@($"notifications/details?id={notif.Id}")">Details</a></td>
+                    <td><a href="@($"notifications/delete?id={notif.Id}")">Delete</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+<!--
+<QuickGrid Class="table" Items="DB.Notifications">
+    <PropertyColumn Property="notification => notification.Text" />
+    <PropertyColumn Property="notification => notification.Priority" />
+    <PropertyColumn Property="notification => notification.Repetition" />
+    <PropertyColumn Property="notification => notification.DateTime" />
+
+    <TemplateColumn Context="notification">
+        <a href="@($"notifications/edit?id={notification.Id}")">Edit</a> |
+        <a href="@($"notifications/details?id={notification.Id}")">Details</a> |
+        <a href="@($"notifications/delete?id={notification.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+-->

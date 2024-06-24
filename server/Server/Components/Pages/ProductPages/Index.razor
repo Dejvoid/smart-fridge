@@ -1,0 +1,43 @@
+@page "/products"
+@inject Server.Data.ApplicationDbContext DB
+@using Server.Data
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="products/create">Create New</a>
+</p>
+
+<table class="table">
+        <thead>
+            <tr>
+                <th>Barcode</th>
+                <th>Name</th>
+                <th>Count</th>
+                <th>Expiry</th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in DB.Products)
+            {
+                <tr>
+                    <td>@product.Barcode</td>
+                    <td>@product.Name</td>
+                    <td>@product.Count</td>
+                    <td>@product.Expiry.Date</td>
+                    <td>+</td>
+                    <td>-</td>
+                    <td><a href="@($"products/edit?id={product.Id}")">Edit</a></td>
+                    <td><a href="@($"products/details?id={product.Id}")">Details</a></td>
+                    <td><a href="@($"products/delete?id={product.Id}")">Delete</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>

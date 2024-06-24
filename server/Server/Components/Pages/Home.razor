@@ -1,0 +1,55 @@
+﻿@page "/"
+@inject Server.Data.ApplicationDbContext DB
+@using Server.Data
+
+<PageTitle>Home</PageTitle>
+
+<h1>Smart Fridge</h1>
+
+<h2>Eat these soon! (expiry in less than 3 days)</h2>
+<table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Count</th>
+                <th>Expiry</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in DB.Products.Where(p => p.Expiry < DateTime.Now.AddDays(3)).ToList())
+            {
+                <tr>
+                    <td>@product.Name</td>
+                    <td>@product.Count</td>
+                    <td>@product.Expiry.Date</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+<h2>You shouldn't miss</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Notification Text</th>
+            <th>Date and Time</th>
+            <th>Repetition</th>
+            <th>Dismiss</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var notif in userNotif)
+        {
+            <tr>
+                <td>@notif.Text</td>
+                <td>@notif.DateTime</td>
+                <td>@notif.Repetition</td>
+                <td></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    List<Notification> userNotif = new List<Notification>();
+}
