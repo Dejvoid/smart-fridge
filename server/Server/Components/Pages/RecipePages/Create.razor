@@ -21,7 +21,7 @@
             </div>        
             <div class="mb-3">
                 <label for="description" class="form-label">Description:</label> 
-                <InputText id="description" @bind-Value="Recipe.Description" class="form-control" /> 
+                <InputTextArea id="description" @bind-Value="Recipe.Description" class="form-control" /> 
                 <ValidationMessage For="() => Recipe.Description" class="text-danger" /> 
             </div>        
             <div class="mb-3">
@@ -29,6 +29,8 @@
                 <InputNumber id="duration" @bind-Value="Recipe.Duration" class="form-control" /> 
                 <ValidationMessage For="() => Recipe.Duration" class="text-danger" /> 
             </div>        
+            <Ingredients Recipe=Recipe>
+            </Ingredients>
             <button type="submit" class="btn btn-primary">Create</button>
         </EditForm>
     </div>
@@ -42,6 +44,8 @@
 
     [SupplyParameterFromForm]
     public Recipe Recipe { get; set; } = new();
+    public bool showList = false;
+    
 
     // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
     public async Task AddRecipe()

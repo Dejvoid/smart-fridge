@@ -1,0 +1,71 @@
+@inject Server.Data.ApplicationDbContext DB
+@using Server.Data
+
+<div class="mb-3">
+    <InputText @bind-Value=searchTxt></InputText>
+    <button type="button" @onclick="SearchIngredients">Search ingredients</button>
+</div>
+
+<div class="mb-3">
+    @if (showList){
+        <ul>
+            @foreach (var p in filtered) {
+                <li>
+                    @p.Name
+                    <button type="button" @onclick="(() =>AddIngredient(p))">+</button>
+                </li>
+            }
+        </ul>
+    }
+</div>
+<div>
+    <ul>
+        @foreach (var p in Recipe.Ingredients) {
+            <li>
+                @p.Product.Name
+                <InputNumber @bind-Value ="p.Count" @oninput="((e) => CheckCount(p, e))"></InputNumber>
+            </li>
+        }
+    </ul>
+</div>
+
+@code {
+    [Parameter]
+    public required Recipe Recipe { get; set; }
+    public List<Product> filtered = new ();
+    public bool showList = false;
+    
+    private string searchTxt = "";
+
+    public void SearchIngredients() {
+        filtered = DB.Products.Where(p=>p.Name.StartsWith(searchTxt)).ToList();
+        showList = true;
+    }
+
+    public void RemoveIngredient(Product p) {
+        var ingredient = Recipe.Ingredients.FirstOrDefault(i => i.Product == p);
+        if (ingredient is not null) {
+            --ingredient.Count;
+            if (ingredient.Count <= 0)
+                Recipe.Ingredients.Remove(ingredient);
+        }
+    }
+
+    public void AddIngredient(Product p) {
+        var ingredient = Recipe.Ingredients.FirstOrDefault(i => i.Product == p);
+        if (ingredient is not null)
+            ++ingredient.Count;
+        else
+            Recipe.Ingredients.Add(new RecipeProduct() {ProductId = p.Id, Product = p, RecipeId = Recipe.Id, Recipe = Recipe, Count = 1});
+    }
+
+    public void CheckCount(RecipeProduct rp, ChangeEventArgs e) {
+        decimal val;
+        if (e.Value is null || !decimal.TryParse(e.Value.ToString(), out val) || val <= 0) {
+            Recipe.Ingredients.Remove(rp);
+        }
+        //if (rp.Count <= 0) {
+        //    Recipe.Ingredients.Remove(rp);
+        //}
+    }
+}

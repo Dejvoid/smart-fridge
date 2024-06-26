@@ -30,8 +30,16 @@
             <dd class="col-sm-10">@product.Count</dd>
         </dl>
         <dl class="row">
+            <dt class="col-sm-2">MinimumCount</dt>
+            <dd class="col-sm-10">@product.MinimumCount</dd>
+        </dl>
+        <dl class="row">
             <dt class="col-sm-2">Expiry</dt>
-            <dd class="col-sm-10">@product.Expiry.Date</dd>
+            <dd class="col-sm-10">@product.Expiry</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">DefaultExpiryDays</dt>
+            <dd class="col-sm-10">@product.DefaultExpiryDays</dd>
         </dl>
         <EditForm method="post" Model="product" OnValidSubmit="DeleteProduct" FormName="delete" Enhance>
             <button type="submit" class="btn btn-danger" disabled="@(product is null)">Delete</button> |

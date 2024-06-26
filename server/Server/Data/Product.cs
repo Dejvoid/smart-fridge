@@ -59,13 +59,13 @@ public class RecipeProduct {
 
 public class Recipe {
     public int Id { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
+    public string Name { get; set; } = "";
+    public string Description { get; set; } = "";
 
     /// <summary>
     /// Ingredients for the recipe
     /// </summary>
-    public ICollection<RecipeProduct> Ingredients { get; set; }
+    public ICollection<RecipeProduct> Ingredients { get; set; } = new HashSet<RecipeProduct>();
 
     /// <summary>
     /// How long will the recipe take in minutes

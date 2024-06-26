@@ -30,7 +30,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 // We need DbContext for dbControl class
 DbContextOptions<ApplicationDbContext> dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseSqlite(connectionString).Options;
 ApplicationDbContext db = new(dbOptions);
-db.Database.EnsureCreated();
+//db.Database.EnsureCreated();
 
 DataController dbControl = new DataController(db);
 
@@ -38,7 +38,7 @@ DashboardService dashboard = new();
 
 // Add MQTT service
 MqttHandler mqtt = new(dashboard, dbControl);
-mqtt.Start("/home/dejvoid/cert/ca.crt", "/home/dejvoid/cert/server.pfx");
+mqtt.Start("ca.crt", "server.pfx");
 
 // Add notification service
 NotificationHandler notif = new(dbControl, mqtt);
