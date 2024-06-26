@@ -375,11 +375,16 @@ void Lcd<SPI, PINS, W, H>::draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_
 
 template <spi_host_device_t SPI, LcdPins PINS, uint16_t W, uint16_t H>
 void Lcd<SPI, PINS, W, H>::draw_line(uint16_t from_x, uint16_t from_y, uint16_t to_x, uint16_t to_y, uint8_t r, uint8_t g, uint8_t b) {
-    uint16_t dx = to_x - from_x;
-    uint16_t dy = to_y - from_y;
+    int dx = to_x - from_x;
+    int dy = to_y - from_y;
+    int a_dx = std::abs(dx);
+    int a_dy = std::abs(dy);
+    int dir_x = (dx != 0) ? dx / a_dx : 0;
+    int dir_y = (dy != 0) ? dy / a_dy : 0;
     // We use naive approach to draw the lines since even the longest line is not too many pixels
-    for (auto x = from_x; x < to_x; ++x) {
-        auto y = from_y + dy * (x - from_x) / dx;
+    for (auto step = 0; step < std::max(a_dx, a_dy); ++step) {
+        auto x = from_x + std::max(0, a_dx - step) * dir_x;
+        auto y = from_y + std::max(0, a_dy - step) * dir_y;
         draw_rect(x,y,1,1,r,g,b);
     }
 }
