@@ -2,7 +2,6 @@
 ## Before Build
 Before building you need to set WiFi SSID and Password and MQTT URI in `main.cpp`
 
-
 ## Build environment
 - [esp-idf](https://github.com/espressif/esp-idf) (tested on version 5.1.2) 
     - I personally used VSCode with esp-idf extension
@@ -14,9 +13,10 @@ Before building you need to set WiFi SSID and Password and MQTT URI in `main.cpp
 1. Clone repository
 2. `cd smart-fridge/device/`
 3. `code .`
-4. Fill wifi SSID and password. Edit pin numbers if needed.
-5. Open vscode quick-launch (`Ctrl+Shift+P`)
-6. `ESP-IDF: Build your project` (assuming ESP-IDF extension to be configured)
+4. Fill wifi SSID and password, MQTT server URI. Edit pin numbers if needed.
+5. Copy generated certificates `ca.crt`, `device.key`, `device.crt` to `main` folder
+6. Open vscode quick-launch (`Ctrl+Shift+P`)
+7. `ESP-IDF: Build your project` (assuming ESP-IDF extension to be configured)
     - Or `ESP-IDF: Build, Flash and Start Monitor on your Device` to directly flash and monitor.
 
 ## Controls
