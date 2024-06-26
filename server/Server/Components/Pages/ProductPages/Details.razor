@@ -23,8 +23,12 @@
             <dd class="col-sm-10">@product.Name</dd>
             <dt class="col-sm-2">Count</dt>
             <dd class="col-sm-10">@product.Count</dd>
+            <dt class="col-sm-2">Minimal Count</dt>
+            <dd class="col-sm-10">@product.MinimumCount</dd>
             <dt class="col-sm-2">Expiry</dt>
             <dd class="col-sm-10">@product.Expiry.Date</dd>
+            <dt class="col-sm-2">Default Expiry Days</dt>
+            <dd class="col-sm-10">@product.DefaultExpiryDays</dd>
         </dl>
         <div>
             <a href="@($"/products/edit?id={product.Id}")">Edit</a> |

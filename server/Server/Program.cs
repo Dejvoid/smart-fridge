@@ -30,6 +30,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 // We need DbContext for dbControl class
 DbContextOptions<ApplicationDbContext> dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseSqlite(connectionString).Options;
 ApplicationDbContext db = new(dbOptions);
+db.Database.EnsureCreated();
 
 DataController dbControl = new DataController(db);
 
@@ -37,7 +38,7 @@ DashboardService dashboard = new();
 
 // Add MQTT service
 MqttHandler mqtt = new(dashboard, dbControl);
-mqtt.Start();
+mqtt.Start("/home/dejvoid/cert/ca.crt", "/home/dejvoid/cert/server.pfx");
 
 // Add notification service
 NotificationHandler notif = new(dbControl, mqtt);
@@ -68,10 +69,10 @@ else
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    //app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.UseAntiforgery();

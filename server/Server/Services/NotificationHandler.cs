@@ -1,6 +1,16 @@
 using Server.Data;
 
+/// <summary>
+/// Interface representation of the Notification handler
+/// </summary>
 interface INotifier {
+    /// <summary>
+    /// Sets the notification with given text to given time with priority and repetition
+    /// </summary>
+    /// <param name="text">Text of the notification</param>
+    /// <param name="dateTime">Time of the notification</param>
+    /// <param name="priority">Priority</param>
+    /// <param name="repetition">Repetition period</param>
     public void NotifyOn(string text, DateTime dateTime, NotifPriority priority = NotifPriority.NONE, NotifPeriod repetition = NotifPeriod.NONE);
 }
 

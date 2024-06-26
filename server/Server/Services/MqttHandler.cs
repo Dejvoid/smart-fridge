@@ -8,6 +8,9 @@ using System.Text;
 using System.Security.Cryptography.X509Certificates;
 using System.Net.Security;
 
+/// <summary>
+/// Constants definition for the MQTT topics used in the system
+/// </summary>
 readonly struct MqttTopics {
     public const string NOTIF = "notifications";
     public const string NOTIF_ALL = NOTIF + "/#";
@@ -19,6 +22,9 @@ readonly struct MqttTopics {
     public const string PRODUCT_RM = PRODUCT + "/rm";
 }
 
+/// <summary>
+/// MQTT handler. Server as genuine MQTT gateway. Publishing to product topic is authorized via the certificate
+/// </summary>
 class MqttHandler : IDisposable
 {
     MqttServer srv;
@@ -35,6 +41,11 @@ class MqttHandler : IDisposable
         dataControl = data;
     }
 
+    /// <summary>
+    /// Start the service
+    /// </summary>
+    /// <param name="caCertFile">Certification authority file in .crt format</param>
+    /// <param name="serverCertFile">Server certificate file in .pfx format</param>
     public async void Start(string? caCertFile = null, string? serverCertFile = null) {
         var mqttFactory = new MqttFactory();
         
@@ -82,6 +93,11 @@ class MqttHandler : IDisposable
         //await client.PublishStringAsync("notifications", "hello");
     }
 
+    /// <summary>
+    /// Callback on client disconnect. Removes client id from verified IDs.
+    /// </summary>
+    /// <param name="args"></param>
+    /// <returns></returns>
     private async Task RemoveVerified(ClientDisconnectedEventArgs args)
     {
         var id = args.ClientId;
@@ -90,15 +106,28 @@ class MqttHandler : IDisposable
         }
     }
 
+    /// <summary>
+    /// Authorization for the products topic
+    /// </summary>
+    /// <param name="args"></param>
+    /// <returns></returns>
     private Task VerifyPublish(InterceptingPublishEventArgs args)
     {
         // only verified users/devices can publish to product/#
         if (args.ApplicationMessage.Topic.StartsWith(MqttTopics.PRODUCT)) {
             args.ProcessPublish = verifiedClients.Contains(args.ClientId);
         }
+        if (!verifiedClients.Contains(args.ClientId)) {
+            System.Console.WriteLine("Unauthenticated user");
+        }
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Validates user's connection
+    /// </summary>
+    /// <param name="args"></param>
+    /// <returns></returns>
     private Task ValidateConnectionAsync(ValidatingConnectionEventArgs args)
     {
         bool certVerified = false;
@@ -124,6 +153,14 @@ class MqttHandler : IDisposable
         //throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// More of a dummy method since without this callback the service doesn't consider certificates
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="certificate"></param>
+    /// <param name="chain"></param>
+    /// <param name="sslPolicyErrors"></param>
+    /// <returns></returns>
     private bool DeviceValidation(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
     {
         // In order to be able to add users to verifiedClients, we need this "dummy"
@@ -152,6 +189,11 @@ class MqttHandler : IDisposable
         */
     }
 
+/// <summary>
+/// Called on mesage received.
+/// </summary>
+/// <param name="e"></param>
+/// <returns></returns>
     private async Task MessageReceivedCallback(MqttApplicationMessageReceivedEventArgs e)
     {
         string topic = e.ApplicationMessage.Topic;
@@ -178,21 +220,43 @@ class MqttHandler : IDisposable
             break;
         }
     }
-
+    /// <summary>
+    /// Wrapper for product removal
+    /// </summary>
+    /// <param name="payload">bar-code of the product</param>
+    /// <returns></returns>
     private async Task RemoveProduct(string payload)
     {
         dataControl.RemoveProduct(payload);
     }
 
+
+    /// <summary>
+    /// Wrapper for product adding
+    /// </summary>
+    /// <param name="payload">bar-code of the product</param>
+    /// <returns></returns>
     private async Task AddProduct(string payload)
     {
         dataControl.AddProduct(payload);
     }
 
+    /// <summary>
+    /// [TODO]
+    /// Triggers the notification for the HTTP clients of the server
+    /// </summary>
+    /// <param name="payload">text of the notification</param>
+    /// <param name="topic">full notification topic. Used to derrive the priority of the notification</param>
+    /// <returns></returns>
     private async Task TriggerNotification(string payload, string topic)
     {
     }
 
+    /// <summary>
+    /// Temperature update
+    /// </summary>
+    /// <param name="payload">expected float in string value of the temperature</param>
+    /// <returns></returns>
     private async Task UpdateTemperature(string payload)
     {
         float temp;
@@ -200,6 +264,11 @@ class MqttHandler : IDisposable
             dashboard.UpdateTemperature(temp);
     }
 
+    /// <summary>
+    /// Humidity update
+    /// </summary>
+    /// <param name="payload">expected float in string value of the humidity</param>
+    /// <returns></returns>
     private async Task UpdateHumidity(string payload)
     {
         float hum;
@@ -207,6 +276,10 @@ class MqttHandler : IDisposable
             dashboard.UpdateHumidity(hum);
     }
 
+    /// <summary>
+    /// Interface for sending the notifications from the server
+    /// </summary>
+    /// <param name="notif">Notification to be published</param>
     public async void SendNotif(Notification notif) {
         if (!srv.IsStarted) 
             return;

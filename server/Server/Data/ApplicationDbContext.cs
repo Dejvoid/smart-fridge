@@ -20,5 +20,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// </summary>
     public DbSet<Recipe> Recipes { get; set; }
 
+    public DbSet<RecipeProduct> RecipeProducts { get; set; }
+
     public DbSet<Notification> Notifications { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+        builder.Entity<RecipeProduct>()
+               .HasKey(rp => new { rp.RecipeId, rp.ProductId }); 
+    }
 }

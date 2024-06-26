@@ -38,7 +38,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var notif in userNotif)
+        @foreach (var notif in DB.Notifications.Where(n => n.DateTime <= DateTime.Now.AddDays(1)))
         {
             <tr>
                 <td>@notif.Text</td>
