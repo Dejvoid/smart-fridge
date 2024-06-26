@@ -58,7 +58,8 @@ void Wifi::init(const std::string_view ssid, const std::string_view password) {
     
     // This is unfortunate but there's no other way
     std::copy(ssid.begin(), ssid.end(), wifi_cfg.sta.ssid);
-    std::copy(password.begin(), password.end(), wifi_cfg.sta.password);
+    std::copy(password.begin(), password.end(), wifi_cfg.sta.password); 
+    printf("Target SSID: %s\n", wifi_cfg.sta.ssid);
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_cfg) );
