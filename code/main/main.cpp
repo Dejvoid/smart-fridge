@@ -38,7 +38,9 @@ constexpr uint16_t LCD_H            = 320;
 /**
  * Connection constants
 */
-constexpr std::string_view mqtt_uri = "mqtts://192.168.1.104:8883";
+constexpr std::string_view WIFI_SSID = ""; // Change to your own WiFi SSID
+constexpr std::string_view WIFI_PASSWORD = ""; // Change to your own WiFi password
+constexpr std::string_view mqtt_uri = "mqtts://<server address>:8883"; // Change to your MQTT URI
 //constexpr uint16_t port = 2666;
 
 extern "C" void app_main(void) {   
@@ -50,7 +52,7 @@ extern "C" void app_main(void) {
     ESP_ERROR_CHECK(ret);
 
     WifiDriver::Wifi wifi;
-    wifi.init();
+    wifi.init(WIFI_SSID.data(), WIFI_PASSWORD.data());
 
     //InetComm::Connection conn{srv_ip, port};
     //conn.open();
@@ -73,6 +75,8 @@ extern "C" void app_main(void) {
     ConsoleCommander::Commander cmd{&lcd, &mqtt, &cam};
     mqtt.connect(); // we have to connect after the queue for receiving messages is initialized in cmd
     lcd.draw_line(0, LCD_H - LcdDriver::font_size - 5, LCD_W, LCD_H - LcdDriver::font_size - 5, 0xff, 0xff, 0xff);
+    lcd.draw_line(0,240,320,240, 0xff,0xff,0xff);
+    lcd.draw_line(320, 0, 320, 240, 0xff, 0xff, 0xff);
 
     while (true) {
         cmd.therm_update(22.0, 40.0); // Dummy values for now since we can't connect thermometer

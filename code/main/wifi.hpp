@@ -8,11 +8,8 @@
 
 #include <esp_wifi.h>
 #include <freertos/event_groups.h>
-
-/// @brief WiFi SSID
-#define EXAMPLE_ESP_WIFI_SSID ""
-/// @brief WiFi Password
-#define EXAMPLE_ESP_WIFI_PASS ""
+#include <string_view>
+#include <array>
 
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
@@ -51,7 +48,7 @@ namespace WifiDriver {
 class Wifi {
 public:
     /// @brief Initialize wifi connection and IP stack
-    void init();
+    void init(const std::string_view ssid, const std::string_view password);
 };
 }
 #endif

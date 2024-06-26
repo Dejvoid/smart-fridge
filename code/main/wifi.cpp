@@ -2,7 +2,7 @@
 
 using namespace WifiDriver;
 
-void Wifi::init() {
+void Wifi::init(const std::string_view ssid, const std::string_view password) {
     s_wifi_event_group = xEventGroupCreate();
 
     ESP_ERROR_CHECK(esp_netif_init());
@@ -31,8 +31,8 @@ void Wifi::init() {
 
     wifi_config_t wifi_cfg = { 
         .sta =  {
-            .ssid =         EXAMPLE_ESP_WIFI_SSID,
-            .password       = EXAMPLE_ESP_WIFI_PASS,
+            .ssid =         "",
+            .password       = "",
             .scan_method    = WIFI_FAST_SCAN,
             .bssid_set      = 0,
             .bssid          = {}, 
@@ -55,6 +55,10 @@ void Wifi::init() {
             
         }
     };
+    
+    // This is unfortunate but there's no other way
+    std::copy(ssid.begin(), ssid.end(), wifi_cfg.sta.ssid);
+    std::copy(password.begin(), password.end(), wifi_cfg.sta.password);
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_cfg) );
@@ -74,10 +78,10 @@ void Wifi::init() {
      * happened. */
     if (bits & WIFI_CONNECTED_BIT) {
         printf( "connected to ap SSID:%s ",
-                 EXAMPLE_ESP_WIFI_SSID);
+                 ssid.data());
     } else if (bits & WIFI_FAIL_BIT) {
         printf("Failed to connect to SSID:%s",
-                 EXAMPLE_ESP_WIFI_SSID);
+                 ssid.data());
     } else {
         printf("UNEXPECTED EVENT");
     }
