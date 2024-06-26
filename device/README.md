@@ -1,6 +1,6 @@
 # Instructions for board setup
 ## Before Build
-Before building you need to set WiFi SSID and Password in `wifi.hpp` file and set server IP and port in the `main.cpp` file.
+Before building you need to set WiFi SSID and Password and MQTT URI in `main.cpp`
 
 
 ## Build environment
