@@ -12,7 +12,7 @@ Before building you need to set WiFi SSID and Password in `wifi.hpp` file and se
 
 ## Build process (using VSCode)
 1. Clone repository
-2. `cd smart-fridge/code/`
+2. `cd smart-fridge/device/`
 3. `code .`
 4. Fill wifi SSID and password. Edit pin numbers if needed.
 5. Open vscode quick-launch (`Ctrl+Shift+P`)
@@ -21,8 +21,8 @@ Before building you need to set WiFi SSID and Password in `wifi.hpp` file and se
 
 ## Controls
 - Board is currently responsive to 3 console commands:
-    - `send` - sends example temperature and humidity data to the server
-    - `start scan` - starts code scanning. Shows camera view on the display. After successful scan of the code, the scan automatically stops and sends scanned data to the server
+    - `add product` - starts scanning for the codes. after successful scan, the device sends the code to the server as MQTT publish to the topic `products/add`
+    - `rm product` - starts scanning for the codes. after successful scan, the device sends the code to the server as MQTT publish to the topic `products/rm`
     - `stop scan` - manually stops scanning. No code is read
 
 - Board is permanently connected to given server. If connection fails it tries to reconnect every second. If any data is received they are interpreted as notifications on the display.
