@@ -20,11 +20,11 @@ void MqttComm::subscribe(const std::string& topic, int qos) {
     esp_mqtt_client_subscribe_single(client, topic.c_str(), qos);
 }
 void MqttComm::publish(const MqttMessage& msg) {
-    printf("Publishing |%s| to topic |%s|", msg.data.c_str(), msg.topic.c_str());
+    printf("Publishing |%s| to topic |%s|\n", msg.data.c_str(), msg.topic.c_str());
     esp_mqtt_client_publish(client, msg.topic.c_str(), msg.data.c_str(), 0, 0, 0);
 }
 void MqttComm::publish(const std::string& topic, const std::string& msg) {
-    printf("Publishing |%s| to topic |%s|", msg.c_str(), topic.c_str());
+    printf("Publishing |%s| to topic |%s|\n", msg.c_str(), topic.c_str());
     esp_mqtt_client_publish(client, topic.c_str(), msg.c_str(),0,0,0);
 }
 void MqttComm::terminate() {
