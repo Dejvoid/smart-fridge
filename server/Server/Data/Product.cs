@@ -17,7 +17,7 @@ public class Product {
     /// <summary>
     /// Number of the products present
     /// </summary>
-    public int Count { get; set; }
+    public decimal Count { get; set; }
 
     /// <summary>
     /// The amount which is the minimum we must have

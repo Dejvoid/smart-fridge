@@ -19,6 +19,7 @@ interface IDataController {
     /// <param name="identifier">Barcode of the product</param>
     /// <returns> Number of products of this identifier </returns>
     int RemoveProduct(string identifier);
+
     /// <summary>
     /// Lists all products
     /// </summary>
@@ -41,6 +42,9 @@ interface IDataController {
     void RemoveNotification(Notification notif);
 
     List<Notification> GetNotifications();
+    bool Cookable(Recipe r);
+    void Cook(Recipe r);
+    List<Recipe> GetCookable();
 }
 
 /// <summary>
@@ -61,7 +65,7 @@ class DataController : IDataController
         }
         var ret =  ++product.Count;
         dbContext.SaveChanges();
-        return ret;
+        return (int)ret;
     }
 
     public int RemoveProduct(string identifier)
@@ -71,8 +75,9 @@ class DataController : IDataController
         if (product != null) {
             if (product.Count >= 1)
                 --product.Count;
-            ret = product.Count;
+            ret = (int)product.Count;
         }
+        // If the product is not known to the database
         else {
             dbContext.Products.Add(new Product(identifier, "", DateTime.Now));
             ret = 0;
@@ -106,5 +111,28 @@ class DataController : IDataController
 
     public List<Notification> GetNotifications() {
         return dbContext.Notifications.ToList();
+    }
+
+    public bool Cookable(Recipe r) {
+        bool ret = true;
+        foreach (var rp in r.Ingredients) {
+            ret &= rp.Product.Count >= rp.Count;
+        }
+        return ret;
+    }
+
+    public void Cook(Recipe r) {
+        if (Cookable(r)) {
+            foreach (var rp in r.Ingredients) {
+                var p = rp.Product;
+                p.Count -= rp.Count;
+            }
+            dbContext.SaveChanges();
+        }
+    }
+    public List<Recipe> GetCookable() {
+        return dbContext.Recipes.Where(
+            r => r.Ingredients
+                .All(rp => rp.Count <= rp.Product.Count)).ToList();
     }
 }

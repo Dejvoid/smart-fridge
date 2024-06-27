@@ -1,5 +1,6 @@
 ﻿@page "/"
 @inject Server.Data.ApplicationDbContext DB
+@inject DataController DataController
 @using Server.Data
 
 <PageTitle>Home</PageTitle>
@@ -45,6 +46,46 @@
                 <td>@notif.DateTime</td>
                 <td>@notif.Repetition</td>
                 <td></td>
+            </tr>
+        }
+    </tbody>
+</table>
+<h2>Missing products</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Amount</th>
+            <th>Minimum amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var prod in DB.Products.Where(p => p.Count < p.MinimumCount))
+        {
+            <tr>
+                <td>@prod.Name</td>
+                <td>@prod.Count</td>
+                <td>@prod.MinimumCount</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<h2>You can cook today:</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Duration</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var rec in DataController.GetCookable())
+        {
+            <tr>
+                <td>@rec.Name</td>
+                <td>@rec.Duration</td>
             </tr>
         }
     </tbody>

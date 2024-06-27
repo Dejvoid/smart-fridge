@@ -7,8 +7,8 @@ interface IDashBoard {
 }
 
 class DashboardService : IDashBoard {
-    private float temperature = 22.0F;
-    private float humidity = 40.0F;
+    private float temperature = 5.0F;
+    private float humidity = 10.0F;
     public float Temperature { get => temperature; }
     public float Humidity { get => humidity; }
     public void UpdateTemperature(float temp) {

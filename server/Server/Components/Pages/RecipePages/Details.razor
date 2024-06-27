@@ -2,6 +2,7 @@
 @inject Server.Data.ApplicationDbContext DB
 @using Server.Data
 @inject NavigationManager NavigationManager
+@inject DataController DataController
 @using Microsoft.EntityFrameworkCore
 
 <PageTitle>Details</PageTitle>
@@ -35,6 +36,7 @@
         <div>
             <a href="@($"/recipes/edit?id={recipe.Id}")">Edit</a> |
             <a href="@($"/recipes")">Back to List</a>
+            <button type="button" disabled="@(!cookable)" @onclick="(() => Cook(recipe))">Cook</button>
         </div>
     }
 </div>
@@ -45,6 +47,8 @@
     [SupplyParameterFromQuery]
     public int Id { get; set; }
 
+    private bool cookable;
+
     protected override async Task OnInitializedAsync()
     {
         recipe = await DB.Recipes.Include(r => r.Ingredients).ThenInclude(i => i.Product).FirstOrDefaultAsync(m => m.Id == Id);
@@ -53,5 +57,11 @@
         {
             NavigationManager.NavigateTo("notfound");
         }
+        else 
+            cookable = DataController.Cookable(recipe);
+    }
+
+    private void Cook(Recipe r) {
+        DataController.Cook(r);
     }
 }
