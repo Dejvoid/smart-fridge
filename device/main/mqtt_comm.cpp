@@ -49,3 +49,7 @@ void MqttComm::process_msg(const esp_mqtt_event_handle_t& e) {
         xQueueSendToBack(*notif_q, &recv_ptr, portMAX_DELAY);
     }
 }
+
+void MqttComm::update_connected(bool connected) {
+    this->connected = connected;
+}

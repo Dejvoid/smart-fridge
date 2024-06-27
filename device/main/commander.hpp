@@ -12,6 +12,7 @@
 #include "camera.hpp"
 
 #include <string>
+#include <list>
 
 class MqttComm;
 struct Notification;
@@ -22,7 +23,6 @@ struct Notification;
 
 namespace ConsoleCommander {
 
-constexpr int max_notif_cnt = 10;
 constexpr int frame_w = 320;
 constexpr int frame_h = 240;
 
@@ -39,14 +39,16 @@ class Commander {
     bool scan_on = false;
     MqttMessage msg_;
     QueueHandle_t notif_q;
+    std::size_t max_notif_cnt = 20;
+    std::list<Notification> notifications;
     /// @brief Executes command string
     /// @param cmd - command to execute
     void handle_cmd(const std::string& cmd);
     /// @brief Read input from console
     void handle_input();
     /// @brief Process notification. Show it on display.
-    /// @param notification - Notification text and priority
-    void notify(const Notification* notif);
+    /// @param notification - Notification to be processed and showed
+    void notify(const Notification& notif);
 public:
     /// @brief Constructor taking in components of the system
     /// @param lcd - Pointer to LCD component 

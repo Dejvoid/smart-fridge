@@ -15,28 +15,37 @@ Commander::Commander(LcdDriver::LcdBase* lcd, MqttComm* mqtt, CameraDriver::Came
     mqtt_->notif_q = &notif_q;
 }
 
-void Commander::notify(const Notification* notif) {
-    printf("notifying %s\n", notif->data);
-    uint8_t color[3] = {0x00, 0x00, 0x00};
-    switch (notif->priority) {
-        case '1': // low priority = GREEN
-            color[1] = 0xff;
-            break;
-        case '2': // mid priority = YELLOW
-            color[0] = 0xff;
-            color[1] = 0xff;
-            break;
-        case '3': // high priority = RED
-            color[0] = 0xff;
-            break;
-        default: // default (no priority) = WHITE
-            color[0] = 0xff;
-            color[1] = 0xff;
-            color[2] = 0xff;
-            break;
+void Commander::notify(const Notification& notification) {
+    notifications.push_front(notification);
+    printf("notifying %s\n", notification.data);
+    if (notifications.size() >= max_notif_cnt) {
+        notifications.pop_back();
     }
-    lcd_->draw_rect(0, lcd_->get_h() - LcdDriver::font_size, max_notif_len * LcdDriver::font_size, LcdDriver::font_size, 0x00,0x00,0x00);
-    lcd_->draw_text(notif->data, 0, lcd_->get_h() - LcdDriver::font_size, color[0], color[1], color[2]);
+    auto x_offset = frame_w + LcdDriver::font_size;
+    auto y_offset = 3 * LcdDriver::font_size; // we start below temperature and humidity
+    for (auto&& notif : notifications) {
+        uint8_t color[3] = {0x00, 0x00, 0x00};
+        switch (notif.priority) {
+            case '1': // low priority = GREEN
+                color[1] = 0xff;
+                break;
+            case '2': // mid priority = YELLOW
+                color[0] = 0xff;
+                color[1] = 0xff;
+                break;
+            case '3': // high priority = RED
+                color[0] = 0xff;
+                break;
+            default: // default (no priority) = WHITE
+                color[0] = 0xff;
+                color[1] = 0xff;
+                color[2] = 0xff;
+                break;
+        }
+        lcd_->draw_rect(x_offset, y_offset, max_notif_len * LcdDriver::font_size, LcdDriver::font_size, 0x00,0x00,0x00);
+        lcd_->draw_text(notif.data, x_offset,y_offset, color[0], color[1], color[2]);
+        y_offset += LcdDriver::font_size * 2;
+    }
 }
 
 void Commander::loop() {
@@ -44,7 +53,7 @@ void Commander::loop() {
     // Check for new notifications and if there are any, notify
     if (notif_q != NULL && xQueueReceive(notif_q, &notification, 0) == pdTRUE) {
         printf("SOME MESSAGES ARE HERE\n");
-        notify(notification);
+        notify(*notification);
     }
 
     // Handle user console input
@@ -91,6 +100,15 @@ void Commander::loop() {
     lcd_->draw_text(temp_str, temp_pos_x, temp_pos_y, 0x00, 0xff, 0x00);
     lcd_->draw_rect(hum_pos_x, hum_pos_y, hum_end_x, hum_end_y, 0x00, 0x00, 0x00);
     lcd_->draw_text(hum_str, hum_pos_x, hum_pos_y, 0xff, 0xff, 0xff);
+
+    // Show server connection status
+    uint16_t status_x = 0;
+    uint16_t status_y = lcd_->get_h() - LcdDriver::font_size;
+    std::string stat_str = std::string(mqtt_->connected ? "Connected" : "Disconnected");
+    uint16_t len = 21; // length of "Server: Disconnected"
+    lcd_->draw_rect(status_x, status_y, len * LcdDriver::font_size, LcdDriver::font_size, 0x00,0x00,0x00);
+    lcd_->draw_text("Server: " + stat_str, status_x, status_y, mqtt_->connected ? 0x00 : 0xff, mqtt_->connected ? 0xff : 0x00, 0x00);
+
 }
 
 void Commander::therm_update(float temp, float hum) {
