@@ -23,6 +23,8 @@ struct Notification;
 namespace ConsoleCommander {
 
 constexpr int max_notif_cnt = 10;
+constexpr int frame_w = 320;
+constexpr int frame_h = 240;
 
 /// @brief Class responsible for input/output handling and interconnection individual components. Provides access to components over the commands and takes care of drawing notifications
 class Commander {

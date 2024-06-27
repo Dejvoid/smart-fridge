@@ -20,6 +20,7 @@
 #include <driver/gpio.h>
 #include <esp_http_client.h>
 #include <nvs_flash.h>
+#include <esp_timer.h>
 #include "mqtt_comm.hpp"
 
 /**
@@ -74,6 +75,10 @@ constexpr std::string_view WIFI_SSID = ""; // Change to your own WiFi SSID
 constexpr std::string_view WIFI_PASSWORD = ""; // Change to your own WiFi password
 constexpr std::string_view mqtt_uri = "mqtts://<server-address>:8883"; // Change to your MQTT URI
 
+static void temp_update(void* arg) {
+    ((ConsoleCommander::Commander*)arg)->therm_update(22.0, 40.0); // Dummy values for now since we can't connect thermometer
+}
+
 extern "C" void app_main(void) {   
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -106,12 +111,20 @@ extern "C" void app_main(void) {
     MqttComm mqtt{mqtt_uri.data()};
     ConsoleCommander::Commander cmd{&lcd, &mqtt, &cam};
     mqtt.connect(); // we have to connect after the queue for receiving messages is initialized in cmd
-    lcd.draw_line(0, LCD_H - LcdDriver::font_size - 5, LCD_W, LCD_H - LcdDriver::font_size - 5, 0xff, 0xff, 0xff);
+    //lcd.draw_line(0, LCD_H - LcdDriver::font_size - 5, LCD_W, LCD_H - LcdDriver::font_size - 5, 0xff, 0xff, 0xff);
     lcd.draw_line(0,240,320,240, 0xff,0xff,0xff);
     lcd.draw_line(320, 0, 320, 240, 0xff, 0xff, 0xff);
 
+    const esp_timer_create_args_t periodic_timer_args = {
+        .callback = &temp_update,
+        .arg = &cmd
+    };
+
+    esp_timer_handle_t periodic_timer;
+    ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &periodic_timer));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(periodic_timer, 10'000'000));
+
     while (true) {
-        cmd.therm_update(22.0, 40.0); // Dummy values for now since we can't connect thermometer
         cmd.loop();
         //therm.loop();
     }
