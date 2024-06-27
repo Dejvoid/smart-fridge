@@ -3,6 +3,7 @@
 @using Server.Data
 @inject NavigationManager NavigationManager
 @using Microsoft.EntityFrameworkCore
+@inject NotificationHandler NotificationHandler
 
 <PageTitle>Edit</PageTitle>
 
@@ -88,6 +89,12 @@ else
         try
         {
             await DB.SaveChangesAsync();
+            if (Product!.Count == 0) {
+                NotificationHandler.NotifyImmediate("0 of " + Product.Name, NotifPriority.HIGH);
+            }
+            else if (Product!.Count < Product.MinimumCount) {
+                NotificationHandler.NotifyImmediate($"{Product.Count} of {Product.Name}", NotifPriority.MEDIUM);
+            }
         }
         catch (DbUpdateConcurrencyException)
         {

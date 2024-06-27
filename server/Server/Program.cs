@@ -43,6 +43,8 @@ mqtt.Start("ca.crt", "server.pfx");
 // Add notification service
 NotificationHandler notif = new(dbControl, mqtt);
 
+dashboard.Notifier = notif;
+
 builder.Services.AddSingleton<MqttHandler>(mqtt);
 builder.Services.AddSingleton<NotificationHandler>(notif);
 builder.Services.AddSingleton<DashboardService>(dashboard);

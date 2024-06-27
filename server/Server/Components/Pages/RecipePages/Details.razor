@@ -4,6 +4,7 @@
 @inject NavigationManager NavigationManager
 @inject DataController DataController
 @using Microsoft.EntityFrameworkCore
+@inject NotificationHandler NotificationHandler
 
 <PageTitle>Details</PageTitle>
 
@@ -37,6 +38,7 @@
             <a href="@($"/recipes/edit?id={recipe.Id}")">Edit</a> |
             <a href="@($"/recipes")">Back to List</a>
             <button type="button" disabled="@(!cookable)" @onclick="(() => Cook(recipe))">Cook</button>
+            <p>@cookedString</p>
         </div>
     }
 </div>
@@ -48,6 +50,8 @@
     public int Id { get; set; }
 
     private bool cookable;
+
+    string cookedString = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -62,6 +66,16 @@
     }
 
     private void Cook(Recipe r) {
+        cookedString = "Recipe cooked! (Products amount removed from database)";
         DataController.Cook(r);
+        foreach (var rp in r.Ingredients) {
+            if (rp.Product.Count == 0) {
+                NotificationHandler.NotifyImmediate("0 of " + rp.Product.Name, NotifPriority.HIGH);
+            }
+            else if (rp.Product.Count < rp.Product.MinimumCount) {
+                NotificationHandler.NotifyImmediate($"{rp.Product.Count} of {rp.Product.Name}", NotifPriority.MEDIUM);
+            }
+        }
+        cookable = DataController.Cookable(recipe);
     }
 }

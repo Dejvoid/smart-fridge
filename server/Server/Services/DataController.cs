@@ -105,8 +105,10 @@ class DataController : IDataController
     }
 
     public void RemoveNotification(Notification notif) {
-        dbContext.Notifications.Remove(notif);
-        dbContext.SaveChanges();
+        if (dbContext.Notifications.Contains(notif)) {
+            dbContext.Notifications.Remove(notif);
+            dbContext.SaveChanges();
+        }
     }
 
     public List<Notification> GetNotifications() {

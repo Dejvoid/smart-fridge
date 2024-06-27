@@ -12,6 +12,8 @@ interface INotifier {
     /// <param name="priority">Priority</param>
     /// <param name="repetition">Repetition period</param>
     public void NotifyOn(string text, DateTime dateTime, NotifPriority priority = NotifPriority.NONE, NotifPeriod repetition = NotifPeriod.NONE);
+    public void NotifyOn(Notification notif);
+    public void NotifyImmediate(string text, NotifPriority priority = NotifPriority.NONE);
 }
 
 class NotificationHandler : INotifier, IDisposable {
@@ -59,6 +61,11 @@ class NotificationHandler : INotifier, IDisposable {
             notif.Text += $"[MISSED - {notif.DateTime}]";
             TriggerNotification(notif);
         }
+    }
+
+    public void NotifyImmediate(string text, NotifPriority priority = NotifPriority.NONE) {
+        var notif = new Notification(){Text = text, DateTime = DateTime.Now, Priority = priority, Repetition = NotifPeriod.NONE};
+        TriggerNotification(notif);
     }
 
     internal void LoadFromDb()

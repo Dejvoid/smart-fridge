@@ -272,8 +272,9 @@ class MqttHandler : IDisposable
     private async Task UpdateHumidity(string payload)
     {
         float hum;
-        if (float.TryParse(payload, out hum))
+        if (float.TryParse(payload, out hum)) {
             dashboard.UpdateHumidity(hum);
+        }
     }
 
     /// <summary>
