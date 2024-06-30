@@ -1,0 +1,38 @@
+@using Server.Data
+@inject ClientNotifications notifs
+@inject MqttHandler mqtt
+
+
+<div>
+    @if (Visible) {
+        <ul>New notification:
+            <li>Notification Text: @Notif!.Text</li>
+            <li>Notification Priority: @Notif!.Priority</li>
+        </ul>
+        <button @onclick=Dismiss>x</button>
+    }
+</div>
+
+
+@code {
+    private Notification? Notif { get; set; }
+    private bool Visible { get; set; }= false;
+    protected override void OnInitialized() {
+        base.OnInitialized();
+        notifs.Register(mqtt.NotificationClients);
+        notifs.Component = this;
+    }
+    private void Dismiss() {
+        Notif = null;
+        Visible = false;
+    }
+    public void UpdateNotification(Notification n) {
+        // The StateHasChanged has to be called specially
+        InvokeAsync(() => 
+        {
+            Notif = n;
+            Visible = true;
+            StateHasChanged();
+        });
+    }
+}

@@ -12,7 +12,16 @@ interface INotifier {
     /// <param name="priority">Priority</param>
     /// <param name="repetition">Repetition period</param>
     public void NotifyOn(string text, DateTime dateTime, NotifPriority priority = NotifPriority.NONE, NotifPeriod repetition = NotifPeriod.NONE);
+    /// <summary>
+    /// Sets the given notification (with time, priority and repetition).
+    /// </summary>
+    /// <param name="notif"></param>
     public void NotifyOn(Notification notif);
+    /// <summary>
+    /// Immediately sends the notification with given text and priority
+    /// </summary>
+    /// <param name="text">Notification text</param>
+    /// <param name="priority">Notification priority</param>
     public void NotifyImmediate(string text, NotifPriority priority = NotifPriority.NONE);
 }
 

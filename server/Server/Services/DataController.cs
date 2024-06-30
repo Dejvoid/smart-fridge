@@ -36,14 +36,36 @@ interface IDataController {
     /// <param name="id"> primary key of the product </param>
     /// <returns> Product if in DB, else null </returns>
     Product? GetProduct(int id);
-
+    /// <summary>
+    /// Adds the notification to the database
+    /// </summary>
+    /// <param name="notif">Notification to add</param>
     void AddNotification(Notification notif);
-
+    /// <summary>
+    /// Removes the notification from the database
+    /// </summary>
+    /// <param name="notif">Notification to remove</param>
     void RemoveNotification(Notification notif);
-
+    /// <summary>
+    /// List all notifications
+    /// </summary>
+    /// <returns>List of all notifications in database</returns>
     List<Notification> GetNotifications();
+    /// <summary>
+    /// Tells if there are enough products to cook the recipe
+    /// </summary>
+    /// <param name="r">Recipe to cook</param>
+    /// <returns>true if there are enough ingredients (products) else false</returns>
     bool Cookable(Recipe r);
+    /// <summary>
+    /// Cooks the recipe by removing the ingredients (products) from the database
+    /// </summary>
+    /// <param name="r">Recipe to cook</param>
     void Cook(Recipe r);
+    /// <summary>
+    /// Gets all cookable recipes
+    /// </summary>
+    /// <returns>List of cookable recipes</returns>
     List<Recipe> GetCookable();
 }
 
@@ -52,6 +74,7 @@ interface IDataController {
 /// </summary>
 class DataController : IDataController
 {
+    public INotifier? Notifier { get; set; }
     private ApplicationDbContext dbContext;
     public DataController(ApplicationDbContext db)
     {
@@ -76,6 +99,14 @@ class DataController : IDataController
             if (product.Count >= 1)
                 --product.Count;
             ret = (int)product.Count;
+            if (Notifier is not null) {
+                if (product.Count == 0) {
+                    Notifier.NotifyImmediate($"0 of {product.Name}", NotifPriority.HIGH);
+                }
+                else if (product.Count < product.MinimumCount) {
+                    Notifier.NotifyImmediate($"{product.Count} of {product.Name}", NotifPriority.MEDIUM);
+                }
+            }
         }
         // If the product is not known to the database
         else {

@@ -31,11 +31,10 @@ class MqttHandler : IDisposable
     IMqttClient client;
     IDashBoard dashboard;
     IDataController dataControl;
-    INotifier notifications = null;
     X509Certificate2 caCert;
     X509Certificate2 cert;
     HashSet<string> verifiedClients = new();
-
+    public HashSet<IClientNotifications> NotificationClients { get; set; } = new();
     public MqttHandler(IDashBoard dash, IDataController data) {
         dashboard = dash;
         dataControl = data;
@@ -143,7 +142,6 @@ class MqttHandler : IDisposable
             certVerified = chain.ChainElements
                 .Cast<X509ChainElement>()
                 .Any(x => x.Certificate.Thumbprint == caCert.Thumbprint);
-            
         }
         
         if (certVerified) {
@@ -166,7 +164,7 @@ class MqttHandler : IDisposable
         // In order to be able to add users to verifiedClients, we need this "dummy"
         // Only with this we can accept all clients but still see their certificates
         return true;
-        /*
+        /* This part of code could serve as connection denial for unauthorized users
         bool isValid = false;
         if (certificate is not null && chain is not null) {
             chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
@@ -250,6 +248,28 @@ class MqttHandler : IDisposable
     /// <returns></returns>
     private async Task TriggerNotification(string payload, string topic)
     {
+        NotifPriority p = NotifPriority.NONE;
+        if (topic.Length > MqttTopics.NOTIF.Length + 1) {
+            var priorityStr = topic.Substring(MqttTopics.NOTIF.Length + 1);
+            switch (priorityStr[0]) {
+                case '1':
+                    p = NotifPriority.LOW;
+                break;
+                case '2':
+                    p = NotifPriority.MEDIUM;
+                break;
+                case '3':
+                    p = NotifPriority.HIGH;
+                break;
+                default:
+                    p = NotifPriority.NONE;
+                break;
+            }
+        }
+        var n = new Notification() {Text = payload, Priority = p};
+        foreach(var c in NotificationClients) {
+            c.AcceptNotification(n);
+        }
     }
 
     /// <summary>

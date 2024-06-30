@@ -17,7 +17,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var product in DB.Products.Where(p => p.Expiry < DateTime.Now.AddDays(3)).ToList())
+            @foreach (var product in DB.Products.Where(p => p.Count > 0 && p.Expiry < DateTime.Now.AddDays(3)).ToList())
             {
                 <tr>
                     <td>@product.Name</td>

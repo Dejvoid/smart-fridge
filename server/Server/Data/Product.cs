@@ -90,7 +90,7 @@ public enum NotifPriority {
 
 public class Notification {
     public int Id { get; set; }
-    public string Text { get; set; }
+    public string Text { get; set; } = "";
     public NotifPriority Priority { get; set; }
     public NotifPeriod Repetition { get; set; }
     /// <summary>
