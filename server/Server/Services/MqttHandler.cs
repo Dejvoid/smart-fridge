@@ -27,12 +27,12 @@ readonly struct MqttTopics {
 /// </summary>
 class MqttHandler : IDisposable
 {
-    MqttServer srv;
-    IMqttClient client;
+    MqttServer? srv;
+    IMqttClient? client;
     IDashBoard dashboard;
     IDataController dataControl;
-    X509Certificate2 caCert;
-    X509Certificate2 cert;
+    X509Certificate2? caCert;
+    X509Certificate2? cert;
     HashSet<string> verifiedClients = new();
     public HashSet<IClientNotifications> NotificationClients { get; set; } = new();
     public MqttHandler(IDashBoard dash, IDataController data) {
@@ -130,18 +130,18 @@ class MqttHandler : IDisposable
     private Task ValidateConnectionAsync(ValidatingConnectionEventArgs args)
     {
         bool certVerified = false;
-        if (args.ClientCertificate is not null) {
+        if (args.ClientCertificate is not null && caCert is not null) {
             var chain = new X509Chain();
             chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
             chain.ChainPolicy.RevocationFlag = X509RevocationFlag.ExcludeRoot;
             chain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
             chain.ChainPolicy.VerificationTime = DateTime.Now;
             chain.ChainPolicy.UrlRetrievalTimeout = new TimeSpan(0, 0, 0);
-            chain.ChainPolicy.ExtraStore.Add(caCert);
+            chain.ChainPolicy.ExtraStore.Add(caCert!);
             var isValid = chain.Build(args.ClientCertificate);
             certVerified = chain.ChainElements
                 .Cast<X509ChainElement>()
-                .Any(x => x.Certificate.Thumbprint == caCert.Thumbprint);
+                .Any(x => x.Certificate.Thumbprint == caCert!.Thumbprint);
         }
         
         if (certVerified) {
@@ -200,20 +200,20 @@ class MqttHandler : IDisposable
         switch (topic)
         {
             case MqttTopics.HUM:
-                await UpdateHumidity(payload);
+                UpdateHumidity(payload);
             break;
             case MqttTopics.THERM:
-                await UpdateTemperature(payload);
+                UpdateTemperature(payload);
             break;
             case MqttTopics.PRODUCT_ADD:
-                await AddProduct(payload);
+                AddProduct(payload);
             break;
             case MqttTopics.PRODUCT_RM:
-                await RemoveProduct(payload);
+                RemoveProduct(payload);
             break;
             default:
                 if (topic.StartsWith(MqttTopics.NOTIF)) {
-                    await TriggerNotification(payload, topic);
+                    TriggerNotification(payload, topic);
                 }
             break;
         }
@@ -222,8 +222,7 @@ class MqttHandler : IDisposable
     /// Wrapper for product removal
     /// </summary>
     /// <param name="payload">bar-code of the product</param>
-    /// <returns></returns>
-    private async Task RemoveProduct(string payload)
+    private void RemoveProduct(string payload)
     {
         dataControl.RemoveProduct(payload);
     }
@@ -234,19 +233,17 @@ class MqttHandler : IDisposable
     /// </summary>
     /// <param name="payload">bar-code of the product</param>
     /// <returns></returns>
-    private async Task AddProduct(string payload)
+    private void AddProduct(string payload)
     {
         dataControl.AddProduct(payload);
     }
 
     /// <summary>
-    /// [TODO]
-    /// Triggers the notification for the HTTP clients of the server
+    /// Triggers the notification for the web clients of the server
     /// </summary>
     /// <param name="payload">text of the notification</param>
     /// <param name="topic">full notification topic. Used to derrive the priority of the notification</param>
-    /// <returns></returns>
-    private async Task TriggerNotification(string payload, string topic)
+    private void TriggerNotification(string payload, string topic)
     {
         NotifPriority p = NotifPriority.NONE;
         if (topic.Length > MqttTopics.NOTIF.Length + 1) {
@@ -276,8 +273,7 @@ class MqttHandler : IDisposable
     /// Temperature update
     /// </summary>
     /// <param name="payload">expected float in string value of the temperature</param>
-    /// <returns></returns>
-    private async Task UpdateTemperature(string payload)
+    private void UpdateTemperature(string payload)
     {
         float temp;
         if (float.TryParse(payload, out temp))
@@ -288,8 +284,7 @@ class MqttHandler : IDisposable
     /// Humidity update
     /// </summary>
     /// <param name="payload">expected float in string value of the humidity</param>
-    /// <returns></returns>
-    private async Task UpdateHumidity(string payload)
+    private void UpdateHumidity(string payload)
     {
         float hum;
         if (float.TryParse(payload, out hum)) {
@@ -302,7 +297,7 @@ class MqttHandler : IDisposable
     /// </summary>
     /// <param name="notif">Notification to be published</param>
     public async void SendNotif(Notification notif) {
-        if (!srv.IsStarted) 
+        if (srv is null || client is null || !srv.IsStarted) 
             return;
 
         var msg = new MqttApplicationMessageBuilder()
